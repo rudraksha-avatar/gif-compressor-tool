@@ -1,6 +1,7 @@
 import './styles.css';
 import { compressGif } from './gif-compressor';
 import { renderLayout, type ToolPageConfig } from './layout';
+import { MemoryManager } from './memory-manager';
 import { convertMp4ToGif } from './mp4-to-gif';
 import type {
   CompressionMode,
@@ -13,11 +14,11 @@ import type {
   VideoFileMetadata
 } from './types';
 import {
-  cleanupObjectUrl,
   formatBytes,
   formatPercent,
   getBrowserSupportIssue,
   getMp4BrowserSupportIssue,
+  getRuntimeProcessingWarning,
   readGifMetadata,
   readVideoMetadata,
   toNullablePositiveInteger,
@@ -134,6 +135,7 @@ function gifToolHtml(): string {
       <p id="privacy-note" class="privacy-note">Your GIF is compressed locally in your browser. No file is uploaded to any server.</p>
       <div id="selection-status" class="notice success hidden" role="status" aria-live="polite"></div>
       <div id="file-warning" class="notice warning hidden" role="status" aria-live="polite"></div>
+      <div id="runtime-warning" class="notice warning" role="status" aria-live="polite"></div>
       <div class="settings-grid">
         <div class="field-group">
           <label for="target-value">Target size</label>
@@ -195,6 +197,7 @@ function mp4ToolHtml(): string {
       <p id="video-privacy-note" class="privacy-note">Your MP4 is converted locally in your browser. No file is uploaded to any server.</p>
       <div id="video-selection-status" class="notice success hidden" role="status" aria-live="polite"></div>
       <div id="video-file-warning" class="notice warning hidden" role="status" aria-live="polite"></div>
+      <div id="video-runtime-warning" class="notice warning" role="status" aria-live="polite"></div>
       <div class="settings-grid">
         <div class="field-group"><label for="video-start-time">Start time (seconds)</label><input id="video-start-time" type="number" min="0" step="0.1" value="0" inputmode="decimal" /></div>
         <div class="field-group"><label for="video-end-time">End time (seconds)</label><input id="video-end-time" type="number" min="0" step="0.1" placeholder="Auto" inputmode="decimal" /></div>
@@ -301,6 +304,7 @@ function initGifTool(): void {
   const errorBox = requireElement<HTMLDivElement>('#error-box');
   const selectionStatus = requireElement<HTMLDivElement>('#selection-status');
   const fileWarning = requireElement<HTMLDivElement>('#file-warning');
+  const runtimeWarning = requireElement<HTMLDivElement>('#runtime-warning');
   const settingsSummary = requireElement<HTMLDivElement>('#settings-summary');
   const qualityWarning = requireElement<HTMLDivElement>('#quality-warning');
   const progressWrap = requireElement<HTMLDivElement>('#progress-wrap');
@@ -313,6 +317,7 @@ function initGifTool(): void {
   let compressedPreviewUrl = '';
   let activeCompressionTask: CompressionTask | null = null;
   let selectedFileToken = 0;
+  const memoryManager = new MemoryManager();
 
   const defaultSettings = { targetValue: '1024', targetUnit: 'KB', mode: 'balanced', auto: true, maxWidth: '', fpsReduction: '', colorLimit: '' } as const;
 
@@ -359,7 +364,7 @@ function initGifTool(): void {
     resetButton.disabled = isRunning || selectedFile === null;
   };
   const resetCompressedOutput = (): void => {
-    cleanupObjectUrl(compressedPreviewUrl);
+    memoryManager.revokeObjectUrl('compressed');
     compressedPreviewUrl = '';
     compressedPreview.classList.add('empty-state');
     compressedPreview.textContent = 'Compressed output will appear here.';
@@ -407,7 +412,7 @@ function initGifTool(): void {
     selectedFile = null;
     selectedFileToken += 1;
     fileInput.value = '';
-    cleanupObjectUrl(originalPreviewUrl);
+    memoryManager.revokeAll();
     originalPreviewUrl = '';
     resetCompressedOutput();
     originalPreview.parentElement?.classList.remove('selected-card');
@@ -437,8 +442,7 @@ function initGifTool(): void {
     setNotice(selectionStatus, 'GIF selected successfully', false);
     updateLargeFileWarning(file);
     resetCompressedOutput();
-    cleanupObjectUrl(originalPreviewUrl);
-    originalPreviewUrl = URL.createObjectURL(file);
+    originalPreviewUrl = memoryManager.setObjectUrl('original', file);
     renderImagePreview(originalPreview, originalPreviewUrl, `Original preview for ${file.name}`);
     originalPreview.parentElement?.classList.add('selected-card');
     renderStats(originalStats, selectedFileStats(file, null));
@@ -454,8 +458,7 @@ function initGifTool(): void {
     });
   };
   const renderCompressionResult = (fileName: string, result: CompressionResult): void => {
-    cleanupObjectUrl(compressedPreviewUrl);
-    compressedPreviewUrl = URL.createObjectURL(result.blob);
+    compressedPreviewUrl = memoryManager.setObjectUrl('compressed', result.blob);
     renderImagePreview(compressedPreview, compressedPreviewUrl, `Compressed preview for ${fileName}`);
     setNotice(statusBox, result.underTarget ? 'Compression complete. The GIF is within your target size.' : 'Best possible compression reached. The file could not be reduced below the requested target.', false);
     renderStats(compressedStats, [
@@ -577,6 +580,7 @@ function initGifTool(): void {
   applyDefaultSettings();
   updateWarning();
   renderSettingsSummary();
+  setNotice(runtimeWarning, getRuntimeProcessingWarning(), false);
 }
 
 function initMp4Tool(): void {
@@ -600,6 +604,7 @@ function initMp4Tool(): void {
   const resultStats = requireElement<HTMLDListElement>('#video-result-stats');
   const selectionStatus = requireElement<HTMLDivElement>('#video-selection-status');
   const fileWarning = requireElement<HTMLDivElement>('#video-file-warning');
+  const runtimeWarning = requireElement<HTMLDivElement>('#video-runtime-warning');
   const settingsSummary = requireElement<HTMLDivElement>('#video-settings-summary');
   const statusBox = requireElement<HTMLDivElement>('#video-status-box');
   const errorBox = requireElement<HTMLDivElement>('#video-error-box');
@@ -613,6 +618,7 @@ function initMp4Tool(): void {
   let outputGifUrl = '';
   let activeTask: Mp4ToGifTask | null = null;
   let selectedToken = 0;
+  const memoryManager = new MemoryManager();
 
   const defaults = { start: '0', end: '', duration: '5', width: '480', fps: '10', mode: 'balanced', loop: true, autoOptimize: true } as const;
 
@@ -660,7 +666,7 @@ function initMp4Tool(): void {
     resetButton.disabled = isRunning || selectedFile === null;
   };
   const resetOutput = (): void => {
-    cleanupObjectUrl(outputGifUrl);
+    memoryManager.revokeObjectUrl('output-gif');
     outputGifUrl = '';
     gifPreview.classList.add('empty-state');
     gifPreview.textContent = 'Converted GIF will appear here.';
@@ -679,7 +685,7 @@ function initMp4Tool(): void {
     selectedFile = null;
     selectedToken += 1;
     fileInput.value = '';
-    cleanupObjectUrl(selectedVideoUrl);
+    memoryManager.revokeAll();
     selectedVideoUrl = '';
     resetOutput();
     videoPreview.parentElement?.classList.remove('selected-card');
@@ -741,8 +747,7 @@ function initMp4Tool(): void {
     setNotice(selectionStatus, 'MP4 selected successfully', false);
     updateLargeFileWarning(file);
     resetOutput();
-    cleanupObjectUrl(selectedVideoUrl);
-    selectedVideoUrl = URL.createObjectURL(file);
+    selectedVideoUrl = memoryManager.setObjectUrl('selected-video', file);
     renderVideoPreview(videoPreview, selectedVideoUrl, `Selected video preview for ${file.name}`);
     videoPreview.parentElement?.classList.add('selected-card');
     renderStats(videoStats, selectedStats(file, null));
@@ -754,12 +759,12 @@ function initMp4Tool(): void {
       renderStats(videoStats, selectedStats(file, metadata));
       if (metadata) {
         durationLimitInput.max = `${Math.max(1, Math.min(15, Math.floor(metadata.duration)))}`;
+        setNotice(runtimeWarning, getRuntimeProcessingWarning(metadata.duration), false);
       }
     });
   };
   const renderResult = (fileName: string, result: Mp4ToGifResult): void => {
-    cleanupObjectUrl(outputGifUrl);
-    outputGifUrl = URL.createObjectURL(result.blob);
+    outputGifUrl = memoryManager.setObjectUrl('output-gif', result.blob);
     renderImagePreview(gifPreview, outputGifUrl, `Converted GIF preview for ${fileName}`);
     setNotice(statusBox, 'MP4 conversion complete. Your animated GIF is ready.', false);
     renderStats(resultStats, [
@@ -871,6 +876,7 @@ function initMp4Tool(): void {
 
   applyDefaultSettings();
   renderSettingsSummary();
+  setNotice(runtimeWarning, getRuntimeProcessingWarning(), false);
 }
 
 if (route === '/') {

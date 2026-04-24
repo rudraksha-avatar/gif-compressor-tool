@@ -29,6 +29,8 @@ MP4 to GIF route: `https://gif.itisuniqueofficial.com/mp4-to-gif`
 - Web Worker processing to keep the UI responsive
 - Cancel button for long-running compression jobs
 - Worker-side memory guard for extremely large GIFs
+- Shared object URL cleanup and memory reset flow between tools
+- FFmpeg virtual file cleanup after MP4 conversion
 - Responsive layout for mobile, tablet, and desktop
 - SEO-ready metadata, sitemap, robots.txt, and JSON-LD
 
@@ -42,6 +44,11 @@ MP4 to GIF route: `https://gif.itisuniqueofficial.com/mp4-to-gif`
 - `@ffmpeg/ffmpeg`
 - `gifuct-js`
 - `gifenc`
+
+## Tool List
+
+1. `https://gif.itisuniqueofficial.com/` - GIF Compressor
+2. `https://gif.itisuniqueofficial.com/mp4-to-gif` - MP4 to GIF Converter
 
 ## Install
 
@@ -94,12 +101,29 @@ npm run preview
 - The output is a real downloadable animated `.gif` file.
 - The browser preview uses the generated GIF itself, not a fake canvas export.
 
+## FFmpeg Usage
+
+- The MP4 to GIF converter uses `ffmpeg.wasm` inside a worker.
+- MP4 input is written to the FFmpeg virtual file system.
+- A real GIF palette is generated with `palettegen`.
+- The final GIF is produced with `paletteuse`.
+- Temporary FFmpeg files are deleted after conversion or failure.
+
+## Memory Cleanup
+
+- Object URLs are revoked when files are reset or replaced.
+- Old output blobs are released when new conversions start.
+- Workers are cancelled and terminated through the tool task flow.
+- FFmpeg temporary files are deleted after MP4 conversion.
+- Previous previews and download links are cleared before new results are rendered.
+
 ## Browser Compatibility
 
 - Modern Chromium, Firefox, and Safari browsers are supported.
 - If `OffscreenCanvas` is unavailable or limited, the worker falls back to direct pixel resizing.
 - FFmpeg.wasm conversion works best on modern browsers with enough available memory.
 - Corrupted or unsupported GIF files return clearer parse/decode errors instead of failing silently.
+- Mobile browsers may process large GIFs or MP4 files more slowly than desktop devices.
 
 ## Compression Strategy
 
@@ -168,11 +192,16 @@ public/
   robots.txt
   sitemap.xml
 src/
+  ffmpeg-manager.ts
   main.ts
   styles.css
   types.ts
+  memory-manager.ts
+  layout.ts
   gif-compressor.ts
   gif-worker.ts
+  mp4-to-gif.ts
+  mp4-to-gif-worker.ts
   utils.ts
 index.html
 package.json

@@ -150,3 +150,23 @@ export async function readVideoMetadata(file: File): Promise<VideoFileMetadata |
     video.src = objectUrl;
   });
 }
+
+export function getRuntimeProcessingWarning(durationSeconds?: number | null): string {
+  const notes: string[] = ['Compression may take longer and use more browser memory on this device.', 'Keep this page open while processing.'];
+  const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const deviceMemory = typeof navigator !== 'undefined' && 'deviceMemory' in navigator ? Number((navigator as Navigator & { deviceMemory?: number }).deviceMemory) : null;
+
+  if (isMobile) {
+    notes.push('Mobile browser processing may be slower for large files.');
+  }
+
+  if (deviceMemory !== null && Number.isFinite(deviceMemory) && deviceMemory <= 4) {
+    notes.push('This device may have limited memory available for media processing.');
+  }
+
+  if (typeof durationSeconds === 'number' && durationSeconds > 10) {
+    notes.push('Long media durations can increase conversion time and memory usage.');
+  }
+
+  return notes.join(' ');
+}

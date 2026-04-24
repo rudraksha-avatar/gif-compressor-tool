@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 
 import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { cleanupFfmpegFiles, FFMPEG_LOAD_CONFIG } from './ffmpeg-manager';
 import type {
   Mp4GifMode,
   Mp4ToGifSettings,
@@ -51,11 +52,7 @@ async function ensureFfmpegLoaded(): Promise<void> {
   });
 
   try {
-    await ffmpeg.load({
-      coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
-      wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
-      workerURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.worker.js'
-    });
+    await ffmpeg.load(FFMPEG_LOAD_CONFIG);
     ffmpegLoaded = true;
   } catch {
     throw new Error('FFmpeg could not be loaded in this browser. Please try a modern desktop or mobile browser with enough memory.');
@@ -74,13 +71,6 @@ function buildEffectiveSettings(settings: Mp4ToGifSettings): Mp4ToGifSettings {
   };
 }
 
-function buildPaletteFilter(settings: Mp4ToGifSettings): string {
-  const preset = modePreset(settings.mode);
-  const fps = settings.fps;
-  const scaleWidth = settings.width ?? 480;
-  return `fps=${fps},scale=${scaleWidth}:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=${preset.colors}:stats_mode=diff[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3`;
-}
-
 function computeDuration(settings: Mp4ToGifSettings): number {
   const explicitEnd = settings.endTime ?? settings.startTime + settings.durationLimit;
   const duration = explicitEnd - settings.startTime;
@@ -90,9 +80,12 @@ function computeDuration(settings: Mp4ToGifSettings): number {
 async function convertVideo(request: Mp4ToGifWorkerRequest): Promise<{ bytes: Uint8Array; summary: Mp4ToGifSummary }> {
   const settings = buildEffectiveSettings(request.settings);
   const inputName = 'input.mp4';
+  const paletteName = 'palette.png';
   const outputName = 'output.gif';
   const durationUsed = computeDuration(settings);
-  const paletteFilter = buildPaletteFilter(settings);
+  const baseFilter = `fps=${settings.fps},scale=${settings.width ?? 480}:-1:flags=lanczos`;
+  const paletteFilter = `${baseFilter},palettegen=max_colors=${modePreset(settings.mode).colors}:stats_mode=diff`;
+  const usePaletteFilter = `${baseFilter}[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=3`;
 
   await ensureFfmpegLoaded();
   postProgress('Preparing video', 'Writing MP4 into the worker file system', 12);
@@ -113,6 +106,21 @@ async function convertVideo(request: Mp4ToGifWorkerRequest): Promise<{ bytes: Ui
       inputName,
       '-vf',
       paletteFilter,
+      '-y',
+      paletteName
+    ]);
+
+    await ffmpeg.exec([
+      '-ss',
+      `${settings.startTime}`,
+      '-t',
+      `${durationUsed}`,
+      '-i',
+      inputName,
+      '-i',
+      paletteName,
+      '-lavfi',
+      usePaletteFilter,
       '-loop',
       settings.loop ? '0' : '-1',
       '-y',
@@ -128,13 +136,8 @@ async function convertVideo(request: Mp4ToGifWorkerRequest): Promise<{ bytes: Ui
     outputData = await ffmpeg.readFile(outputName) as Uint8Array;
   } catch {
     throw new Error('The GIF output could not be read after conversion.');
-  }
-
-  try {
-    await ffmpeg.deleteFile(inputName);
-    await ffmpeg.deleteFile(outputName);
-  } catch {
-    // ignore cleanup failures
+  } finally {
+    await cleanupFfmpegFiles(ffmpeg, [inputName, paletteName, outputName]);
   }
 
   return {
