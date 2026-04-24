@@ -282,6 +282,42 @@ const mp4PageConfig: ToolPageConfig = {
 updateSeo(route);
 app.innerHTML = renderLayout(route === '/' ? gifPageConfig : mp4PageConfig);
 
+function initNavigation(): void {
+  const menuToggle = document.querySelector<HTMLButtonElement>('#menu-toggle');
+  const navigation = document.querySelector<HTMLElement>('#site-navigation');
+
+  if (!menuToggle || !navigation) {
+    return;
+  }
+
+  const closeMenu = (): void => {
+    navigation.dataset.open = 'false';
+    menuToggle.setAttribute('aria-expanded', 'false');
+  };
+
+  menuToggle.addEventListener('click', () => {
+    const isOpen = navigation.dataset.open === 'true';
+    navigation.dataset.open = isOpen ? 'false' : 'true';
+    menuToggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+  });
+
+  navigation.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth < 960) {
+        closeMenu();
+      }
+    });
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 960) {
+      closeMenu();
+    }
+  });
+}
+
+initNavigation();
+
 function initGifTool(): void {
   const fileInput = requireElement<HTMLInputElement>('#file-input');
   const dropzone = requireElement<HTMLDivElement>('#dropzone');
