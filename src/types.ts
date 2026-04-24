@@ -53,6 +53,11 @@ export interface WorkerCompressRequest {
   settings: CompressionSettings;
 }
 
+export interface CompressionTask {
+  promise: Promise<CompressionResult>;
+  cancel: () => void;
+}
+
 export interface WorkerProgressMessage {
   type: 'progress';
   payload: CompressionProgress;

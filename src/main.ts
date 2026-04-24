@@ -1,6 +1,6 @@
 import './styles.css';
 import { compressGif } from './gif-compressor';
-import type { CompressionMode, CompressionResult } from './types';
+import type { CompressionMode, CompressionResult, CompressionTask } from './types';
 import {
   cleanupObjectUrl,
   formatBytes,
@@ -147,6 +147,9 @@ app.innerHTML = `
               <i class="fa-solid fa-minimize" aria-hidden="true"></i>
               Compress GIF
             </button>
+            <button id="cancel-button" class="secondary-button" type="button" disabled>
+              Cancel
+            </button>
             <button id="reset-button" class="secondary-button" type="button" disabled>
               Compress another GIF
             </button>
@@ -283,6 +286,7 @@ const maxWidthInput = requireElement<HTMLInputElement>('#max-width');
 const fpsReductionSelect = requireElement<HTMLSelectElement>('#fps-reduction');
 const colorLimitSelect = requireElement<HTMLSelectElement>('#color-limit');
 const compressButton = requireElement<HTMLButtonElement>('#compress-button');
+const cancelButton = requireElement<HTMLButtonElement>('#cancel-button');
 const resetButton = requireElement<HTMLButtonElement>('#reset-button');
 const originalPreview = requireElement<HTMLDivElement>('#original-preview');
 const compressedPreview = requireElement<HTMLDivElement>('#compressed-preview');
@@ -300,6 +304,7 @@ const downloadButton = requireElement<HTMLAnchorElement>('#download-button');
 let selectedFile: File | null = null;
 let originalPreviewUrl = '';
 let compressedPreviewUrl = '';
+let activeCompressionTask: CompressionTask | null = null;
 
 function targetBytes(): number {
   return toTargetBytes(Number(targetValueInput.value), targetUnitSelect.value === 'MB' ? 'MB' : 'KB');
@@ -371,6 +376,8 @@ function resetCompressedOutput(): void {
 }
 
 function resetAll(): void {
+  activeCompressionTask?.cancel();
+  activeCompressionTask = null;
   selectedFile = null;
   fileInput.value = '';
   clearPreviewUrl(originalPreviewUrl);
@@ -381,6 +388,7 @@ function resetAll(): void {
   originalPreview.textContent = 'No GIF selected yet.';
   originalStats.innerHTML = '';
   compressButton.disabled = true;
+  cancelButton.disabled = true;
   resetButton.disabled = true;
   setNotice(selectionStatus, '', true);
   setNotice(statusBox, '', true);
@@ -420,6 +428,7 @@ function applySelectedFile(file: File): void {
   renderStats(originalStats, selectedFileStats(file));
 
   compressButton.disabled = false;
+  cancelButton.disabled = true;
   resetButton.disabled = false;
 }
 
@@ -429,6 +438,7 @@ async function handleCompression(): Promise<void> {
   }
 
   compressButton.disabled = true;
+  cancelButton.disabled = false;
   setNotice(errorBox, '', true);
   setNotice(statusBox, 'Preparing GIF for compression...', false);
   resetCompressedOutput();
@@ -436,7 +446,7 @@ async function handleCompression(): Promise<void> {
   progressBar.value = 0;
 
   try {
-    const result = await compressGif(selectedFile, currentSettings(), (progress) => {
+    activeCompressionTask = compressGif(selectedFile, currentSettings(), (progress) => {
       progressWrap.classList.remove('hidden');
       progressBar.value = progress.percent;
       setNotice(
@@ -445,14 +455,31 @@ async function handleCompression(): Promise<void> {
         false
       );
     });
+    const result = await activeCompressionTask.promise;
 
     renderCompressionResult(selectedFile.name, result);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'An unexpected compression error occurred.';
     setNotice(errorBox, message, false);
   } finally {
+    activeCompressionTask = null;
     compressButton.disabled = false;
+    cancelButton.disabled = true;
   }
+}
+
+function cancelCompression(): void {
+  if (!activeCompressionTask) {
+    return;
+  }
+
+  activeCompressionTask.cancel();
+  activeCompressionTask = null;
+  progressWrap.classList.add('hidden');
+  progressBar.value = 0;
+  setNotice(statusBox, 'Compression cancelled.', false);
+  compressButton.disabled = selectedFile === null;
+  cancelButton.disabled = true;
 }
 
 function renderCompressionResult(fileName: string, result: CompressionResult): void {
@@ -522,6 +549,7 @@ fileInput.addEventListener('change', () => handleFileInput(fileInput.files));
 compressButton.addEventListener('click', () => {
   void handleCompression();
 });
+cancelButton.addEventListener('click', cancelCompression);
 resetButton.addEventListener('click', resetAll);
 targetValueInput.addEventListener('input', () => {
   updateWarning();

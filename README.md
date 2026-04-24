@@ -15,6 +15,8 @@ Live site: `https://gif.itisuniqueofficial.com/`
 - Original and compressed GIF preview panels
 - Real size savings, frame count, dimensions, and color reporting
 - Web Worker processing to keep the UI responsive
+- Cancel button for long-running compression jobs
+- Worker-side memory guard for extremely large GIFs
 - Responsive layout for mobile, tablet, and desktop
 - SEO-ready metadata, sitemap, robots.txt, and JSON-LD
 
@@ -139,7 +141,7 @@ README.md
 
 ## License
 
-This project is provided for deployment and use by It Is Unique Official. Add your preferred open-source license if you want to publish reuse terms explicitly.
+MIT. See `LICENSE`.
 
 ## Deployment Note
 

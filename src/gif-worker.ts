@@ -21,6 +21,7 @@ interface ParsedFrame {
   height: number;
   rgba: Uint8ClampedArray;
   delay: number;
+  disposalType: number;
 }
 
 interface ParsedGifData {
@@ -45,6 +46,7 @@ interface EncodedAttempt {
 }
 
 const workerScope = self as DedicatedWorkerGlobalScope;
+const MAX_ESTIMATED_FRAME_MEMORY_BYTES = 450 * 1024 * 1024;
 const modeStrategyPresets: Record<CompressionMode, Strategy[]> = {
   quality: [
     { maxWidth: Infinity, maxColors: 256, frameStep: 1 },
@@ -197,6 +199,22 @@ function parseLoopCount(parsedGif: { frames?: Array<{ application?: { id?: strin
   return blocks[1] | (blocks[2] << 8);
 }
 
+function assertMemoryBudget(width: number, height: number, frameCount: number): void {
+  const estimatedBytes = width * height * 4 * Math.max(1, frameCount);
+
+  if (estimatedBytes > MAX_ESTIMATED_FRAME_MEMORY_BYTES) {
+    throw new RangeError('This GIF is too large for available browser memory. Try a smaller file or lower the animation size.');
+  }
+}
+
+function normalizeDispose(value: number | undefined): number {
+  if (value === 2 || value === 3) {
+    return value;
+  }
+
+  return 1;
+}
+
 function compositeFrames(fileBuffer: ArrayBuffer): ParsedGifData {
   const gif = parseGIF(fileBuffer) as unknown as {
     lsd: { width: number; height: number };
@@ -205,6 +223,7 @@ function compositeFrames(fileBuffer: ArrayBuffer): ParsedGifData {
   const decompressed = decompressFrames(gif as never, true) as GifFrame[];
   const width = gif.lsd.width;
   const height = gif.lsd.height;
+  assertMemoryBudget(width, height, decompressed.length);
   const loopCount = parseLoopCount(gif);
   const composedFrames: ParsedFrame[] = [];
   const working = new Uint8ClampedArray(width * height * 4);
@@ -256,7 +275,8 @@ function compositeFrames(fileBuffer: ArrayBuffer): ParsedGifData {
       width,
       height,
       rgba: new Uint8ClampedArray(working),
-      delay: Math.max(20, frame.delay ?? 100)
+      delay: Math.max(20, frame.delay ?? 100),
+      disposalType: normalizeDispose(frame.disposalType)
     });
 
     previousFrame = frame;
@@ -279,6 +299,7 @@ function encodeAttempt(parsed: ParsedGifData, strategy: Strategy): EncodedAttemp
   for (let index = 0; index < parsed.frames.length; index += strategy.frameStep) {
     const frame = parsed.frames[index];
     const endFrameIndex = Math.min(parsed.frames.length - 1, index + strategy.frameStep - 1);
+    const finalFrameInGroup = parsed.frames[endFrameIndex];
     let totalDelay = 0;
 
     for (let delayIndex = index; delayIndex <= endFrameIndex; delayIndex += 1) {
@@ -301,7 +322,7 @@ function encodeAttempt(parsed: ParsedGifData, strategy: Strategy): EncodedAttemp
       transparent: transparentIndex >= 0,
       transparentIndex: transparentIndex >= 0 ? transparentIndex : 0,
       repeat: outputFrames === 0 ? parsed.loopCount : undefined,
-      dispose: 1
+      dispose: finalFrameInGroup.disposalType
     });
 
     outputFrames += 1;

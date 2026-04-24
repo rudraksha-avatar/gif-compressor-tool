@@ -1,4 +1,5 @@
 import type {
+  CompressionTask,
   CompressionProgress,
   CompressionResult,
   CompressionSettings,
@@ -6,17 +7,24 @@ import type {
   WorkerResponseMessage
 } from './types';
 
-const compressorWorker = new Worker(new URL('./gif-worker.ts', import.meta.url), { type: 'module' });
-
 export function compressGif(
   file: File,
   settings: CompressionSettings,
   onProgress: (progress: CompressionProgress) => void
-): Promise<CompressionResult> {
-  return new Promise(async (resolve, reject) => {
+): CompressionTask {
+  const compressorWorker = new Worker(new URL('./gif-worker.ts', import.meta.url), { type: 'module' });
+  let cancelled = false;
+  let rejectPromise: ((reason?: unknown) => void) | null = null;
+
+  const promise = new Promise<CompressionResult>(async (resolve, reject) => {
+    rejectPromise = reject;
     const fileBuffer = await file.arrayBuffer();
 
     const handleMessage = (event: MessageEvent<WorkerResponseMessage>): void => {
+      if (cancelled) {
+        return;
+      }
+
       const message = event.data;
 
       if (message.type === 'progress') {
@@ -66,7 +74,10 @@ export function compressGif(
     const handleError = (): void => {
       compressorWorker.removeEventListener('message', handleMessage);
       compressorWorker.removeEventListener('error', handleError);
-      reject(new Error('The GIF compression worker failed unexpectedly.'));
+
+      if (!cancelled) {
+        reject(new Error('The GIF compression worker failed unexpectedly.'));
+      }
     };
 
     compressorWorker.addEventListener('message', handleMessage);
@@ -81,4 +92,17 @@ export function compressGif(
 
     compressorWorker.postMessage(request, [fileBuffer]);
   });
+
+  return {
+    promise,
+    cancel: () => {
+      if (cancelled) {
+        return;
+      }
+
+      cancelled = true;
+      compressorWorker.terminate();
+      rejectPromise?.(new Error('Compression cancelled.'));
+    }
+  };
 }
