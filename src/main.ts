@@ -84,6 +84,8 @@ app.innerHTML = `
           Your GIF is compressed locally in your browser. No file is uploaded to any server.
         </p>
 
+        <div id="selection-status" class="notice success hidden" role="status" aria-live="polite"></div>
+
         <div class="settings-grid">
           <div class="field-group">
             <label for="target-value">Target size</label>
@@ -288,6 +290,7 @@ const originalStats = requireElement<HTMLDListElement>('#original-stats');
 const compressedStats = requireElement<HTMLDListElement>('#compressed-stats');
 const statusBox = requireElement<HTMLDivElement>('#status-box');
 const errorBox = requireElement<HTMLDivElement>('#error-box');
+const selectionStatus = requireElement<HTMLDivElement>('#selection-status');
 const qualityWarning = requireElement<HTMLDivElement>('#quality-warning');
 const progressWrap = requireElement<HTMLDivElement>('#progress-wrap');
 const progressBar = requireElement<HTMLProgressElement>('#progress-bar');
@@ -358,8 +361,11 @@ function resetCompressedOutput(): void {
   compressedPreview.classList.add('empty-state');
   compressedPreview.textContent = 'Compressed output will appear here.';
   compressedStats.innerHTML = '';
-  resultActions.classList.add('hidden');
   downloadButton.removeAttribute('href');
+  downloadButton.removeAttribute('download');
+  downloadButton.setAttribute('aria-disabled', 'true');
+  downloadButton.tabIndex = -1;
+  resultActions.classList.add('hidden');
   progressWrap.classList.add('hidden');
   progressBar.value = 0;
 }
@@ -370,38 +376,48 @@ function resetAll(): void {
   clearPreviewUrl(originalPreviewUrl);
   originalPreviewUrl = '';
   resetCompressedOutput();
+  originalPreview.parentElement?.classList.remove('selected-card');
   originalPreview.classList.add('empty-state');
   originalPreview.textContent = 'No GIF selected yet.';
   originalStats.innerHTML = '';
   compressButton.disabled = true;
   resetButton.disabled = true;
+  setNotice(selectionStatus, '', true);
   setNotice(statusBox, '', true);
   setNotice(errorBox, '', true);
+}
+
+function selectedFileStats(file: File): Array<[string, string]> {
+  return [
+    ['File Name', file.name],
+    ['Original Size', formatBytes(file.size)],
+    ['Type', file.type || 'image/gif'],
+    ['Status', 'GIF selected successfully']
+  ];
 }
 
 function applySelectedFile(file: File): void {
   const validationError = validateGifFile(file);
 
   if (validationError) {
+    selectedFile = null;
+    compressButton.disabled = true;
     setNotice(errorBox, validationError, false);
+    setNotice(selectionStatus, '', true);
     return;
   }
 
   selectedFile = file;
   setNotice(errorBox, '', true);
   setNotice(statusBox, '', true);
+  setNotice(selectionStatus, 'GIF selected successfully', false);
   resetCompressedOutput();
 
   clearPreviewUrl(originalPreviewUrl);
   originalPreviewUrl = URL.createObjectURL(file);
   renderPreview(originalPreview, originalPreviewUrl, `Original preview for ${file.name}`);
-  renderStats(originalStats, [
-    ['File name', file.name],
-    ['Original size', formatBytes(file.size)],
-    ['Target size', formatBytes(targetBytes())],
-    ['Mode', compressionModeSelect.options[compressionModeSelect.selectedIndex]?.text ?? 'Balanced'],
-    ['Type', 'Animated GIF input']
-  ]);
+  originalPreview.parentElement?.classList.add('selected-card');
+  renderStats(originalStats, selectedFileStats(file));
 
   compressButton.disabled = false;
   resetButton.disabled = false;
@@ -468,6 +484,8 @@ function renderCompressionResult(fileName: string, result: CompressionResult): v
 
   downloadButton.href = compressedPreviewUrl;
   downloadButton.download = fileName.replace(/\.gif$/i, '') + '-compressed.gif';
+  downloadButton.setAttribute('aria-disabled', 'false');
+  downloadButton.tabIndex = 0;
   resultActions.classList.remove('hidden');
 }
 
@@ -507,16 +525,6 @@ compressButton.addEventListener('click', () => {
 resetButton.addEventListener('click', resetAll);
 targetValueInput.addEventListener('input', () => {
   updateWarning();
-
-  if (selectedFile) {
-    renderStats(originalStats, [
-      ['File name', selectedFile.name],
-      ['Original size', formatBytes(selectedFile.size)],
-      ['Target size', formatBytes(targetBytes())],
-      ['Mode', compressionModeSelect.options[compressionModeSelect.selectedIndex]?.text ?? 'Balanced'],
-      ['Type', 'Animated GIF input']
-    ]);
-  }
 });
 targetUnitSelect.addEventListener('change', updateWarning);
 compressionModeSelect.addEventListener('change', updateWarning);
@@ -524,27 +532,10 @@ autoModeInput.addEventListener('change', updateWarning);
 maxWidthInput.addEventListener('input', updateWarning);
 fpsReductionSelect.addEventListener('change', updateWarning);
 colorLimitSelect.addEventListener('change', updateWarning);
-targetUnitSelect.addEventListener('change', () => {
-  if (selectedFile) {
-    renderStats(originalStats, [
-      ['File name', selectedFile.name],
-      ['Original size', formatBytes(selectedFile.size)],
-      ['Target size', formatBytes(targetBytes())],
-      ['Mode', compressionModeSelect.options[compressionModeSelect.selectedIndex]?.text ?? 'Balanced'],
-      ['Type', 'Animated GIF input']
-    ]);
-  }
-});
 
-compressionModeSelect.addEventListener('change', () => {
-  if (selectedFile) {
-    renderStats(originalStats, [
-      ['File name', selectedFile.name],
-      ['Original size', formatBytes(selectedFile.size)],
-      ['Target size', formatBytes(targetBytes())],
-      ['Mode', compressionModeSelect.options[compressionModeSelect.selectedIndex]?.text ?? 'Balanced'],
-      ['Type', 'Animated GIF input']
-    ]);
+downloadButton.addEventListener('click', (event) => {
+  if (!downloadButton.href) {
+    event.preventDefault();
   }
 });
 

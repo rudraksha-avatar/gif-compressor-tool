@@ -315,6 +315,11 @@ button:disabled {
   border-color: #f59e0b;
 }
 
+.notice.success {
+  background: #f0fdf4;
+  border-color: #16a34a;
+}
+
 .notice.error {
   background: #fef2f2;
   border-color: #dc2626;
@@ -353,6 +358,10 @@ button:disabled {
 .preview-card {
   border: 1px solid #d1d5db;
   padding: 1rem;
+}
+
+.selected-card {
+  border-color: #16a34a;
 }
 
 .preview-frame {
@@ -410,6 +419,11 @@ button:disabled {
 
 .result-actions {
   margin-top: 1rem;
+}
+
+#download-button[aria-disabled='true'] {
+  pointer-events: none;
+  opacity: 0.65;
 }
 
 .footer-row {
