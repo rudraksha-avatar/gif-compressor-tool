@@ -1,3 +1,6 @@
+import { parseGIF } from 'gifuct-js';
+import type { GifFileMetadata } from './types';
+
 export type SizeUnit = 'KB' | 'MB';
 
 export function formatBytes(bytes: number): string {
@@ -51,4 +54,38 @@ export function toNullablePositiveInteger(value: string): number | null {
   }
 
   return Math.round(parsed);
+}
+
+export function getBrowserSupportIssue(): string | null {
+  if (typeof Worker === 'undefined') {
+    return 'This browser does not support Web Workers, so GIF compression cannot run safely.';
+  }
+
+  if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+    return 'This browser does not support object URLs required for GIF preview and download.';
+  }
+
+  return null;
+}
+
+export async function readGifMetadata(file: File): Promise<GifFileMetadata | null> {
+  try {
+    const buffer = await file.arrayBuffer();
+    const parsed = parseGIF(buffer) as unknown as {
+      lsd?: { width?: number; height?: number };
+      frames?: Array<{ image?: unknown }>;
+    };
+
+    const width = parsed.lsd?.width;
+    const height = parsed.lsd?.height;
+    const frameCount = parsed.frames?.filter((frame) => Boolean(frame.image)).length ?? 0;
+
+    if (!width || !height || frameCount === 0) {
+      return null;
+    }
+
+    return { width, height, frameCount };
+  } catch {
+    return null;
+  }
 }

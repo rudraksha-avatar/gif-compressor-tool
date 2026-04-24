@@ -51,6 +51,12 @@ npm run build
 
 The production output is written to `dist`.
 
+## Preview
+
+```bash
+npm run preview
+```
+
 ## How It Works
 
 - The app accepts only real GIF files.
@@ -118,13 +124,14 @@ Final production URL:
 
 ## Privacy
 
-Your GIF is compressed locally in your browser. No file is uploaded to any server.
+Your GIF is compressed locally in your browser. No file is uploaded to any server. GIF frames are decoded and re-encoded in the browser using a Web Worker so the tool remains client-side only.
 
 ## Known Limitations
 
 - Very large GIFs can use a lot of memory because all frames must be decoded and rebuilt in the browser.
 - Aggressive compression may reduce dimensions, palette depth, or animation smoothness.
 - Transparency is preserved as much as practical through RGBA palette quantization, but some edge quality loss is possible with small palettes.
+- Some malformed GIF files may expose only partial metadata before compression, even if decode still succeeds later in the worker.
 
 ## Project Structure
 
@@ -150,6 +157,22 @@ README.md
 ## License
 
 MIT. See `LICENSE`.
+
+## Final Testing Checklist
+
+- GIF upload works
+- Invalid file error works
+- Selected file details show correctly
+- Reset works completely
+- Compression creates a real animated GIF
+- Download works
+- Same file can be selected again after reset
+- UI works on mobile with no horizontal scrolling
+- No console errors during normal use
+- `npm run build` succeeds
+- Cloudflare Pages deployment uses `npm run build` and `dist`
+- Footer credit is visible
+- SEO tags are present in `index.html`
 
 ## Deployment Note
 

@@ -1,10 +1,12 @@
 import './styles.css';
 import { compressGif } from './gif-compressor';
-import type { CompressionMode, CompressionResult, CompressionTask } from './types';
+import type { CompressionMode, CompressionResult, CompressionTask, GifFileMetadata } from './types';
 import {
   cleanupObjectUrl,
   formatBytes,
   formatPercent,
+  getBrowserSupportIssue,
+  readGifMetadata,
   toNullablePositiveInteger,
   toTargetBytes,
   validateGifFile
@@ -85,6 +87,7 @@ app.innerHTML = `
         </p>
 
         <div id="selection-status" class="notice success hidden" role="status" aria-live="polite"></div>
+        <div id="file-warning" class="notice warning hidden" role="status" aria-live="polite"></div>
 
         <div class="settings-grid">
           <div class="field-group">
@@ -300,6 +303,7 @@ const compressedStats = requireElement<HTMLDListElement>('#compressed-stats');
 const statusBox = requireElement<HTMLDivElement>('#status-box');
 const errorBox = requireElement<HTMLDivElement>('#error-box');
 const selectionStatus = requireElement<HTMLDivElement>('#selection-status');
+const fileWarning = requireElement<HTMLDivElement>('#file-warning');
 const settingsSummary = requireElement<HTMLDivElement>('#settings-summary');
 const qualityWarning = requireElement<HTMLDivElement>('#quality-warning');
 const progressWrap = requireElement<HTMLDivElement>('#progress-wrap');
@@ -311,6 +315,7 @@ let selectedFile: File | null = null;
 let originalPreviewUrl = '';
 let compressedPreviewUrl = '';
 let activeCompressionTask: CompressionTask | null = null;
+let selectedFileToken = 0;
 
 const defaultSettings = {
   targetValue: '1024',
@@ -439,10 +444,29 @@ function resetCompressedOutput(): void {
   progressBar.value = 0;
 }
 
+function updateLargeFileWarning(file: File | null): void {
+  if (!file) {
+    setNotice(fileWarning, '', true);
+    return;
+  }
+
+  if (file.size >= 8 * 1024 * 1024) {
+    setNotice(
+      fileWarning,
+      'Large GIF detected. Compression may take longer and use more browser memory on this device.',
+      false
+    );
+    return;
+  }
+
+  setNotice(fileWarning, '', true);
+}
+
 function resetAll(): void {
   activeCompressionTask?.cancel();
   activeCompressionTask = null;
   selectedFile = null;
+  selectedFileToken += 1;
   fileInput.value = '';
   clearPreviewUrl(originalPreviewUrl);
   originalPreviewUrl = '';
@@ -455,17 +479,28 @@ function resetAll(): void {
   compressButton.disabled = true;
   resetButton.disabled = true;
   setNotice(selectionStatus, '', true);
+  setNotice(fileWarning, '', true);
   setNotice(statusBox, '', true);
   setNotice(errorBox, '', true);
 }
 
-function selectedFileStats(file: File): Array<[string, string]> {
-  return [
+function selectedFileStats(file: File, metadata: GifFileMetadata | null): Array<[string, string]> {
+  const items: Array<[string, string]> = [
     ['File Name', file.name],
     ['Original Size', formatBytes(file.size)],
     ['Type', file.type || 'image/gif'],
     ['Status', 'GIF selected successfully']
   ];
+
+  if (metadata) {
+    items.push(['Dimensions', `${metadata.width} x ${metadata.height}`]);
+    items.push(['Frame Count', `${metadata.frameCount}`]);
+  } else {
+    items.push(['Dimensions', 'Reading GIF metadata...']);
+    items.push(['Frame Count', 'Reading GIF metadata...']);
+  }
+
+  return items;
 }
 
 function applySelectedFile(file: File): void {
@@ -478,18 +513,33 @@ function applySelectedFile(file: File): void {
   }
 
   selectedFile = file;
+  selectedFileToken += 1;
+  const currentToken = selectedFileToken;
   setNotice(errorBox, '', true);
   setNotice(statusBox, '', true);
   setNotice(selectionStatus, 'GIF selected successfully', false);
+  updateLargeFileWarning(file);
   resetCompressedOutput();
 
   clearPreviewUrl(originalPreviewUrl);
   originalPreviewUrl = URL.createObjectURL(file);
   renderPreview(originalPreview, originalPreviewUrl, `Original preview for ${file.name}`);
   originalPreview.parentElement?.classList.add('selected-card');
-  renderStats(originalStats, selectedFileStats(file));
+  renderStats(originalStats, selectedFileStats(file, null));
 
   setCompressionUiState(false);
+
+  void readGifMetadata(file).then((metadata) => {
+    if (!selectedFile || selectedFileToken !== currentToken) {
+      return;
+    }
+
+    renderStats(originalStats, selectedFileStats(file, metadata));
+
+    if (!metadata) {
+      setNotice(statusBox, 'GIF selected successfully. Some metadata could not be read before compression, but compression can still continue.', false);
+    }
+  });
 }
 
 async function handleCompression(): Promise<void> {
@@ -598,8 +648,26 @@ function handleFileInput(files: FileList | null): void {
   applySelectedFile(file);
 }
 
-dropzone.addEventListener('click', () => fileInput.click());
+const browserSupportIssue = getBrowserSupportIssue();
+
+if (browserSupportIssue) {
+  dropzone.setAttribute('aria-disabled', 'true');
+  fileInput.disabled = true;
+  setNotice(errorBox, browserSupportIssue, false);
+}
+
+dropzone.addEventListener('click', () => {
+  if (browserSupportIssue) {
+    return;
+  }
+
+  fileInput.click();
+});
 dropzone.addEventListener('keydown', (event) => {
+  if (browserSupportIssue) {
+    return;
+  }
+
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault();
     fileInput.click();
@@ -607,12 +675,20 @@ dropzone.addEventListener('keydown', (event) => {
 });
 
 dropzone.addEventListener('dragover', (event) => {
+  if (browserSupportIssue) {
+    return;
+  }
+
   event.preventDefault();
   dropzone.classList.add('drag-active');
 });
 
 dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-active'));
 dropzone.addEventListener('drop', (event) => {
+  if (browserSupportIssue) {
+    return;
+  }
+
   event.preventDefault();
   dropzone.classList.remove('drag-active');
   handleFileInput(event.dataTransfer?.files ?? null);

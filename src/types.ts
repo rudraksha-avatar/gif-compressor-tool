@@ -1,5 +1,11 @@
 export type CompressionMode = 'balanced' | 'high' | 'quality';
 
+export interface GifFileMetadata {
+  width: number;
+  height: number;
+  frameCount: number;
+}
+
 export interface CompressionSettings {
   targetBytes: number;
   mode: CompressionMode;

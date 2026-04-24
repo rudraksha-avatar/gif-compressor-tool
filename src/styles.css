@@ -208,6 +208,11 @@ a:focus-visible {
   background: #eff6ff;
 }
 
+.dropzone[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .dropzone-content i {
   font-size: 2rem;
   margin-bottom: 0.75rem;
