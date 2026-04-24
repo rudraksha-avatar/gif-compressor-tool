@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gif.itisuniqueofficial.com/sitemap.xml

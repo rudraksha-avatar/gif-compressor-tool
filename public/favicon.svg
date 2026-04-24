@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GIF Compressor Tool">
+  <rect width="64" height="64" fill="#f3f4f6"/>
+  <rect x="8" y="10" width="48" height="44" fill="#ffffff" stroke="#111827" stroke-width="2"/>
+  <path d="M18 22h10v4h-6v4h5v4h-5v8h-4zM31 22h4v20h-4zM39 22h11v4h-7v4h6v4h-6v8h-4z" fill="#111827"/>
+  <rect x="14" y="48" width="36" height="4" fill="#111827"/>
+</svg>
