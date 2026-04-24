@@ -29,6 +29,7 @@ interface ParsedGifData {
   width: number;
   height: number;
   loopCount: number;
+  totalDurationMs: number;
 }
 
 interface Strategy {
@@ -43,6 +44,8 @@ interface EncodedAttempt {
   height: number;
   strategy: Strategy;
   outputFrames: number;
+  outputDurationMs: number;
+  colorsUsed: number;
 }
 
 const workerScope = self as DedicatedWorkerGlobalScope;
@@ -99,9 +102,13 @@ function clampStrategy(strategy: Strategy, originalWidth: number, settings: Comp
   };
 }
 
-function buildStrategies(originalWidth: number, settings: CompressionSettings): Strategy[] {
+function buildStrategies(parsed: ParsedGifData, settings: CompressionSettings, originalBytes: number): Strategy[] {
+  const originalWidth = parsed.width;
   const presetStrategies = modeStrategyPresets[settings.mode];
-  const rawStrategies = settings.auto
+  const isLargeSource = originalWidth >= 900 || parsed.frames.length >= 120 || originalBytes >= 4 * 1024 * 1024;
+  const isLongAnimation = parsed.totalDurationMs >= 12000 || parsed.frames.length >= 180;
+  const isCompactButHeavy = originalWidth <= 480 && originalBytes >= 2 * 1024 * 1024;
+  const adaptiveStrategies = settings.auto
     ? presetStrategies.map((strategy) => clampStrategy(strategy, originalWidth, settings))
     : [
         clampStrategy(
@@ -114,6 +121,21 @@ function buildStrategies(originalWidth: number, settings: CompressionSettings): 
           settings
         )
       ];
+  const rawStrategies = [...adaptiveStrategies];
+
+  if (settings.auto) {
+    if (isCompactButHeavy) {
+      rawStrategies.unshift(clampStrategy({ maxWidth: originalWidth, maxColors: 128, frameStep: 1 }, originalWidth, settings));
+    }
+
+    if (isLargeSource) {
+      rawStrategies.unshift(clampStrategy({ maxWidth: 720, maxColors: 256, frameStep: 1 }, originalWidth, settings));
+    }
+
+    if (isLongAnimation) {
+      rawStrategies.push(clampStrategy({ maxWidth: 360, maxColors: 32, frameStep: 3 }, originalWidth, settings));
+    }
+  }
 
   const seen = new Set<string>();
   const unique: Strategy[] = [];
@@ -216,11 +238,28 @@ function normalizeDispose(value: number | undefined): number {
 }
 
 function compositeFrames(fileBuffer: ArrayBuffer): ParsedGifData {
-  const gif = parseGIF(fileBuffer) as unknown as {
+  let gif: {
     lsd: { width: number; height: number };
     frames: Array<{ application?: { id?: string; blocks?: Uint8Array } }>;
   };
-  const decompressed = decompressFrames(gif as never, true) as GifFrame[];
+
+  try {
+    gif = parseGIF(fileBuffer) as unknown as {
+      lsd: { width: number; height: number };
+      frames: Array<{ application?: { id?: string; blocks?: Uint8Array } }>;
+    };
+  } catch {
+    throw new Error('The GIF appears corrupted or unsupported and could not be parsed.');
+  }
+
+  let decompressed: GifFrame[];
+
+  try {
+    decompressed = decompressFrames(gif as never, true) as GifFrame[];
+  } catch {
+    throw new Error('The GIF appears corrupted or unsupported and its animation frames could not be decoded.');
+  }
+
   const width = gif.lsd.width;
   const height = gif.lsd.height;
   assertMemoryBudget(width, height, decompressed.length);
@@ -229,6 +268,7 @@ function compositeFrames(fileBuffer: ArrayBuffer): ParsedGifData {
   const working = new Uint8ClampedArray(width * height * 4);
   let restoreSnapshot: Uint8ClampedArray | null = null;
   let previousFrame: GifFrame | null = null;
+  let totalDurationMs = 0;
 
   for (const frame of decompressed) {
     if (previousFrame) {
@@ -278,6 +318,7 @@ function compositeFrames(fileBuffer: ArrayBuffer): ParsedGifData {
       delay: Math.max(20, frame.delay ?? 100),
       disposalType: normalizeDispose(frame.disposalType)
     });
+    totalDurationMs += Math.max(20, frame.delay ?? 100);
 
     previousFrame = frame;
   }
@@ -286,7 +327,7 @@ function compositeFrames(fileBuffer: ArrayBuffer): ParsedGifData {
     throw new Error('The GIF could not be decoded into animation frames.');
   }
 
-  return { frames: composedFrames, width, height, loopCount };
+  return { frames: composedFrames, width, height, loopCount, totalDurationMs };
 }
 
 function encodeAttempt(parsed: ParsedGifData, strategy: Strategy): EncodedAttempt {
@@ -295,6 +336,8 @@ function encodeAttempt(parsed: ParsedGifData, strategy: Strategy): EncodedAttemp
   const height = Math.max(1, Math.round(parsed.height * scale));
   const encoder = GIFEncoder();
   let outputFrames = 0;
+  let outputDurationMs = 0;
+  let colorsUsed = 0;
 
   for (let index = 0; index < parsed.frames.length; index += strategy.frameStep) {
     const frame = parsed.frames[index];
@@ -313,12 +356,14 @@ function encodeAttempt(parsed: ParsedGifData, strategy: Strategy): EncodedAttemp
       clearAlpha: true,
       clearAlphaThreshold: 0
     });
+    colorsUsed = Math.max(colorsUsed, palette.length);
     const indexData = applyPalette(resized, palette, 'rgba4444');
     const transparentIndex = palette.findIndex((color) => color.length === 4 && color[3] === 0);
+    const outputDelay = Math.max(20, totalDelay);
 
     encoder.writeFrame(indexData, width, height, {
       palette,
-      delay: Math.max(20, totalDelay),
+      delay: outputDelay,
       transparent: transparentIndex >= 0,
       transparentIndex: transparentIndex >= 0 ? transparentIndex : 0,
       repeat: outputFrames === 0 ? parsed.loopCount : undefined,
@@ -326,6 +371,7 @@ function encodeAttempt(parsed: ParsedGifData, strategy: Strategy): EncodedAttemp
     });
 
     outputFrames += 1;
+    outputDurationMs += outputDelay;
   }
 
   encoder.finish();
@@ -335,7 +381,9 @@ function encodeAttempt(parsed: ParsedGifData, strategy: Strategy): EncodedAttemp
     width,
     height,
     strategy,
-    outputFrames
+    outputFrames,
+    outputDurationMs,
+    colorsUsed
   };
 }
 
@@ -352,18 +400,26 @@ function chooseBestAttempt(attempts: EncodedAttempt[], targetBytes: number): Enc
 }
 
 function buildSummary(parsed: ParsedGifData, attempt: EncodedAttempt, mode: CompressionMode): CompressionSummary {
+  const inputFps = parsed.totalDurationMs > 0 ? (parsed.frames.length * 1000) / parsed.totalDurationMs : 0;
+  const outputFps = attempt.outputDurationMs > 0 ? (attempt.outputFrames * 1000) / attempt.outputDurationMs : 0;
+
   return {
     inputFrames: parsed.frames.length,
     outputFrames: attempt.outputFrames,
+    inputDurationMs: parsed.totalDurationMs,
+    outputDurationMs: attempt.outputDurationMs,
+    inputFps,
+    outputFps,
     originalWidth: parsed.width,
     originalHeight: parsed.height,
     outputWidth: attempt.width,
     outputHeight: attempt.height,
     maxColors: attempt.strategy.maxColors,
-    colorsUsed: attempt.strategy.maxColors,
+    colorsUsed: attempt.colorsUsed,
     frameStep: attempt.strategy.frameStep,
     maxWidth: attempt.strategy.maxWidth,
     loopCount: parsed.loopCount,
+    loopPreserved: true,
     mode
   };
 }
@@ -376,7 +432,7 @@ workerScope.addEventListener('message', (event: MessageEvent<WorkerCompressReque
   try {
     const { fileBuffer, settings } = event.data;
     const parsed = compositeFrames(fileBuffer);
-    const strategies = buildStrategies(parsed.width, settings);
+    const strategies = buildStrategies(parsed, settings, fileBuffer.byteLength);
     const attempts: EncodedAttempt[] = [];
 
     postProgress('Analyzing GIF', 1, strategies.length + 1, 'Decoding animation frames');

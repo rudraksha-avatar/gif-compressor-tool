@@ -498,10 +498,13 @@ function renderCompressionResult(fileName: string, result: CompressionResult): v
     ['Output size', formatBytes(result.compressedBytes)],
     ['Saved', `${formatBytes(result.savedBytes)} (${formatPercent(result.savedPercent)})`],
     ['Resolution', `${result.width} x ${result.height}`],
+    ['Duration', `${(result.summary.inputDurationMs / 1000).toFixed(2)}s -> ${(result.summary.outputDurationMs / 1000).toFixed(2)}s`],
+    ['Estimated FPS', `${result.summary.inputFps.toFixed(1)} -> ${result.summary.outputFps.toFixed(1)}`],
     ['Compression mode', result.summary.mode === 'high' ? 'High Compression' : result.summary.mode === 'quality' ? 'Best Quality' : 'Balanced'],
     ['Under target', statusLabel],
     ['Frames', `${result.summary.inputFrames} -> ${result.summary.outputFrames}`],
     ['Colors used', `${result.summary.colorsUsed}`],
+    ['Loop preserved', result.summary.loopPreserved ? 'Yes' : 'Approximate'],
     ['Loop', result.summary.loopCount === -1 ? 'Play once' : result.summary.loopCount === 0 ? 'Loop forever' : `${result.summary.loopCount} repeats`],
     ['Optimization', result.strategySummary]
   ]);

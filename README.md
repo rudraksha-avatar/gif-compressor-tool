@@ -14,6 +14,7 @@ Live site: `https://gif.itisuniqueofficial.com/`
 - Drag and drop upload with GIF validation
 - Original and compressed GIF preview panels
 - Real size savings, frame count, dimensions, and color reporting
+- Duration and estimated FPS diagnostics in results
 - Web Worker processing to keep the UI responsive
 - Cancel button for long-running compression jobs
 - Worker-side memory guard for extremely large GIFs
@@ -62,8 +63,15 @@ The production output is written to `dist`.
   - palette reduction
   - frame skipping with preserved combined delays
   - metadata reduction by rebuilding the animation
+- The worker adapts pass order based on source dimensions, animation length, frame count, and file size.
 - The output is a real downloadable animated `.gif` file.
 - The browser preview uses the generated GIF itself, not a fake canvas export.
+
+## Browser Compatibility
+
+- Modern Chromium, Firefox, and Safari browsers are supported.
+- If `OffscreenCanvas` is unavailable or limited, the worker falls back to direct pixel resizing.
+- Corrupted or unsupported GIF files return clearer parse/decode errors instead of failing silently.
 
 ## Compression Strategy
 

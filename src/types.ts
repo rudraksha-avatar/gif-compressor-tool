@@ -20,6 +20,10 @@ export interface CompressionProgress {
 export interface CompressionSummary {
   inputFrames: number;
   outputFrames: number;
+  inputDurationMs: number;
+  outputDurationMs: number;
+  inputFps: number;
+  outputFps: number;
   originalWidth: number;
   originalHeight: number;
   outputWidth: number;
@@ -29,6 +33,7 @@ export interface CompressionSummary {
   frameStep: number;
   maxWidth: number;
   loopCount: number;
+  loopPreserved: boolean;
   mode: CompressionMode;
 }
 
