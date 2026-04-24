@@ -20,6 +20,7 @@ declare module '@ffmpeg/ffmpeg' {
     writeFile(path: string, data: Uint8Array | string): Promise<boolean>;
     readFile(path: string): Promise<Uint8Array | string>;
     deleteFile(path: string): Promise<boolean>;
+    listDir(path: string): Promise<Array<{ name: string; isDir: boolean }>>;
     terminate(): void;
   }
 }

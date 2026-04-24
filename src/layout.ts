@@ -1,5 +1,5 @@
 export interface ToolPageConfig {
-  route: '/' | '/mp4-to-gif';
+  route: '/' | '/mp4-to-gif' | '/gif-to-mp4' | '/gif-resizer' | '/gif-speed' | '/gif-optimizer' | '/gif-crop' | '/gif-split' | '/gif-maker';
   toolName: string;
   eyebrow: string;
   intro: string;
@@ -25,7 +25,20 @@ function renderCards(items: Array<{ title: string; description: string }>): stri
 }
 
 export function renderLayout(config: ToolPageConfig): string {
-  const isGifRoute = config.route === '/';
+  const toolLinks = [
+    { href: '/', label: 'GIF Compressor', icon: 'fa-regular fa-file-image' },
+    { href: '/mp4-to-gif', label: 'MP4 to GIF', icon: 'fa-solid fa-film' },
+    { href: '/gif-to-mp4', label: 'GIF to MP4', icon: 'fa-solid fa-video' },
+    { href: '/gif-resizer', label: 'GIF Resizer', icon: 'fa-solid fa-up-right-and-down-left-from-center' },
+    { href: '/gif-crop', label: 'GIF Crop', icon: 'fa-solid fa-crop-simple' },
+    { href: '/gif-speed', label: 'GIF Speed', icon: 'fa-solid fa-gauge-high' },
+    { href: '/gif-split', label: 'GIF Split', icon: 'fa-regular fa-images' },
+    { href: '/gif-maker', label: 'GIF Maker', icon: 'fa-solid fa-wand-magic-sparkles' },
+    { href: '/gif-optimizer', label: 'GIF Optimizer', icon: 'fa-solid fa-sliders' }
+  ];
+  const toolLinkHtml = toolLinks
+    .map((tool) => `<a href="${tool.href}"${config.route === tool.href ? ' aria-current="page"' : ''}><i class="${tool.icon}" aria-hidden="true"></i><span>${tool.label}</span></a>`)
+    .join('');
 
   return `
     <div class="site-shell">
@@ -47,8 +60,12 @@ export function renderLayout(config: ToolPageConfig): string {
             <span>Menu</span>
           </button>
           <nav class="topnav" id="site-navigation" aria-label="Primary navigation" data-open="false">
-            <a href="/"${isGifRoute ? ' aria-current="page"' : ''}><i class="fa-regular fa-file-image" aria-hidden="true"></i><span>GIF Compressor</span></a>
-            <a href="/mp4-to-gif"${!isGifRoute ? ' aria-current="page"' : ''}><i class="fa-solid fa-film" aria-hidden="true"></i><span>MP4 to GIF</span></a>
+            <details class="nav-tools"${config.route !== '/' && config.route !== '/mp4-to-gif' ? ' open' : ''}>
+              <summary><i class="fa-solid fa-toolbox" aria-hidden="true"></i><span>Tools</span></summary>
+              <div class="nav-tools-menu">
+                ${toolLinkHtml}
+              </div>
+            </details>
             <a href="#how-it-works"><i class="fa-solid fa-gears" aria-hidden="true"></i><span>How it Works</span></a>
             <a href="#privacy"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Privacy</span></a>
             <a href="#faq"><i class="fa-regular fa-circle-question" aria-hidden="true"></i><span>FAQ</span></a>
@@ -123,8 +140,7 @@ export function renderLayout(config: ToolPageConfig): string {
             <div class="footer-block">
               <h2><i class="fa-solid fa-link" aria-hidden="true"></i> Quick Links</h2>
               <nav class="footer-links" aria-label="Footer quick links">
-                <a href="/"><i class="fa-regular fa-file-image" aria-hidden="true"></i><span>GIF Compressor</span></a>
-                <a href="/mp4-to-gif"><i class="fa-solid fa-film" aria-hidden="true"></i><span>MP4 to GIF</span></a>
+                ${toolLinkHtml}
                 <a href="#privacy"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Privacy</span></a>
                 <a href="#faq"><i class="fa-regular fa-circle-question" aria-hidden="true"></i><span>FAQ</span></a>
               </nav>

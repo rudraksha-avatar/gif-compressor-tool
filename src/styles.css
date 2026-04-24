@@ -151,6 +151,30 @@ a.secondary-button,
   display: flex;
 }
 
+.nav-tools {
+  border: 1px solid transparent;
+}
+
+.nav-tools summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.7rem 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.nav-tools summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-tools-menu {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0 0 0.4rem;
+}
+
 .topnav a,
 .footer-links a {
   display: inline-flex;
@@ -633,6 +657,25 @@ select:focus-visible,
     justify-content: flex-end;
     align-items: center;
     padding-top: 0;
+  }
+
+  .nav-tools {
+    position: relative;
+  }
+
+  .nav-tools summary {
+    padding: 0.55rem 0.8rem;
+  }
+
+  .nav-tools-menu {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    min-width: 220px;
+    padding: 0.4rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    z-index: 5;
   }
 
   .topnav a {

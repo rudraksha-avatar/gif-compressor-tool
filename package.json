@@ -12,7 +12,8 @@
     "@ffmpeg/ffmpeg": "^0.12.10",
     "@ffmpeg/util": "^0.12.2",
     "gifenc": "^1.0.3",
-    "gifuct-js": "^2.1.2"
+    "gifuct-js": "^2.1.2",
+    "jszip": "^3.10.1"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

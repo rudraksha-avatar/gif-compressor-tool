@@ -1,9 +1,16 @@
 # GIF Tools
 
-A production-ready browser-based toolkit built with Vite and TypeScript. It currently includes two real client-side tools:
+A production-ready browser-based toolkit built with Vite and TypeScript. It currently includes these real client-side tools:
 
 - `https://gif.itisuniqueofficial.com/` - GIF Compressor
 - `https://gif.itisuniqueofficial.com/mp4-to-gif` - MP4 to GIF Converter
+- `https://gif.itisuniqueofficial.com/gif-to-mp4` - GIF to MP4 Converter
+- `https://gif.itisuniqueofficial.com/gif-resizer` - GIF Resizer
+- `https://gif.itisuniqueofficial.com/gif-crop` - GIF Cropper
+- `https://gif.itisuniqueofficial.com/gif-speed` - GIF Speed Changer
+- `https://gif.itisuniqueofficial.com/gif-split` - GIF Frame Splitter
+- `https://gif.itisuniqueofficial.com/gif-maker` - GIF Maker
+- `https://gif.itisuniqueofficial.com/gif-optimizer` - Advanced GIF Optimizer
 
 Both tools run fully in the browser, use worker-based processing, and do not upload files to any server.
 
@@ -17,6 +24,12 @@ MP4 to GIF route: `https://gif.itisuniqueofficial.com/mp4-to-gif`
 
 - Real animated GIF decoding and re-encoding in the browser
 - Real MP4 to GIF conversion in the browser with FFmpeg.wasm
+- Real GIF to MP4 conversion in the browser with FFmpeg.wasm
+- Real GIF resizing in the browser
+- Real GIF cropping in the browser
+- Real GIF speed changes in the browser
+- Real GIF frame extraction into PNG images
+- Real GIF creation from uploaded images
 - Balanced, High Compression, and Best Quality modes
 - Auto mode plus manual controls for width, colors, and frame skipping
 - MP4 controls for start time, end time, duration, width, FPS, and quality mode
@@ -49,6 +62,13 @@ MP4 to GIF route: `https://gif.itisuniqueofficial.com/mp4-to-gif`
 
 1. `https://gif.itisuniqueofficial.com/` - GIF Compressor
 2. `https://gif.itisuniqueofficial.com/mp4-to-gif` - MP4 to GIF Converter
+3. `https://gif.itisuniqueofficial.com/gif-to-mp4` - GIF to MP4 Converter
+4. `https://gif.itisuniqueofficial.com/gif-resizer` - GIF Resizer
+5. `https://gif.itisuniqueofficial.com/gif-crop` - GIF Cropper
+6. `https://gif.itisuniqueofficial.com/gif-speed` - GIF Speed Changer
+7. `https://gif.itisuniqueofficial.com/gif-split` - GIF Frame Splitter
+8. `https://gif.itisuniqueofficial.com/gif-maker` - GIF Maker
+9. `https://gif.itisuniqueofficial.com/gif-optimizer` - Advanced GIF Optimizer
 
 ## Install
 
@@ -80,13 +100,27 @@ npm run preview
 
 - `/` - GIF Compressor
 - `/mp4-to-gif` - MP4 to GIF Converter
+- `/gif-to-mp4` - GIF to MP4 Converter
+- `/gif-resizer` - GIF Resizer
+- `/gif-crop` - GIF Cropper
+- `/gif-speed` - GIF Speed Changer
+- `/gif-split` - GIF Frame Splitter
+- `/gif-maker` - GIF Maker
+- `/gif-optimizer` - Advanced GIF Optimizer
 
 ## How It Works
 
 - The app accepts only real GIF files.
 - The MP4 tool accepts only real `.mp4` video files.
+- The new GIF utilities accept only real animated GIF files.
 - The worker decodes the input GIF into animation frames.
 - The MP4 worker loads FFmpeg.wasm and converts video segments into animated GIF output.
+- The GIF-to-MP4 worker converts animated GIF files into real MP4 video output.
+- The GIF resizer worker rebuilds resized animated GIF output.
+- The GIF crop worker crops animated GIF frames and exports a real cropped GIF.
+- The GIF speed worker changes animation timing and exports a real updated GIF.
+- The GIF split worker extracts frames into real PNG images.
+- The GIF maker worker encodes uploaded image sequences into a real animated GIF.
 - Each frame is composited into a full RGBA frame.
 - The compressor supports `Balanced`, `High Compression`, and `Best Quality` modes.
 - The MP4 converter supports `Best Quality`, `Balanced`, and `Small Size` modes.
@@ -218,6 +252,12 @@ MIT. See `LICENSE`.
 
 - GIF upload works
 - MP4 upload works
+- GIF to MP4 conversion works
+- GIF resizing works
+- GIF cropping works
+- GIF speed changes work
+- GIF frame splitting works
+- GIF maker works
 - Invalid file error works
 - Selected file details show correctly
 - Reset works completely
@@ -226,6 +266,13 @@ MIT. See `LICENSE`.
 - Download works
 - Same file can be selected again after reset
 - `/mp4-to-gif` route works
+- `/gif-to-mp4` route works
+- `/gif-resizer` route works
+- `/gif-crop` route works
+- `/gif-speed` route works
+- `/gif-split` route works
+- `/gif-maker` route works
+- `/gif-optimizer` route works
 - UI works on mobile with no horizontal scrolling
 - No console errors during normal use
 - `npm run build` succeeds
