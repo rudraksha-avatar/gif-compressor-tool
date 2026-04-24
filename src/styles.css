@@ -421,6 +421,10 @@ button:disabled {
   margin-top: 1rem;
 }
 
+#settings-summary {
+  background: #f9fafb;
+}
+
 #download-button[aria-disabled='true'] {
   pointer-events: none;
   opacity: 0.65;

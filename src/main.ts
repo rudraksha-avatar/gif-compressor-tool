@@ -150,12 +150,16 @@ app.innerHTML = `
             <button id="cancel-button" class="secondary-button" type="button" disabled>
               Cancel
             </button>
+            <button id="reset-settings-button" class="secondary-button" type="button">
+              Reset settings
+            </button>
             <button id="reset-button" class="secondary-button" type="button" disabled>
               Compress another GIF
             </button>
           </div>
         </div>
 
+        <div id="settings-summary" class="notice hidden" role="status" aria-live="polite"></div>
         <div id="quality-warning" class="notice warning hidden" role="status" aria-live="polite"></div>
         <div id="status-box" class="notice status hidden" role="status" aria-live="polite"></div>
         <div class="progress-wrap hidden" id="progress-wrap" aria-live="polite">
@@ -287,6 +291,7 @@ const fpsReductionSelect = requireElement<HTMLSelectElement>('#fps-reduction');
 const colorLimitSelect = requireElement<HTMLSelectElement>('#color-limit');
 const compressButton = requireElement<HTMLButtonElement>('#compress-button');
 const cancelButton = requireElement<HTMLButtonElement>('#cancel-button');
+const resetSettingsButton = requireElement<HTMLButtonElement>('#reset-settings-button');
 const resetButton = requireElement<HTMLButtonElement>('#reset-button');
 const originalPreview = requireElement<HTMLDivElement>('#original-preview');
 const compressedPreview = requireElement<HTMLDivElement>('#compressed-preview');
@@ -295,6 +300,7 @@ const compressedStats = requireElement<HTMLDListElement>('#compressed-stats');
 const statusBox = requireElement<HTMLDivElement>('#status-box');
 const errorBox = requireElement<HTMLDivElement>('#error-box');
 const selectionStatus = requireElement<HTMLDivElement>('#selection-status');
+const settingsSummary = requireElement<HTMLDivElement>('#settings-summary');
 const qualityWarning = requireElement<HTMLDivElement>('#quality-warning');
 const progressWrap = requireElement<HTMLDivElement>('#progress-wrap');
 const progressBar = requireElement<HTMLProgressElement>('#progress-bar');
@@ -305,6 +311,16 @@ let selectedFile: File | null = null;
 let originalPreviewUrl = '';
 let compressedPreviewUrl = '';
 let activeCompressionTask: CompressionTask | null = null;
+
+const defaultSettings = {
+  targetValue: '1024',
+  targetUnit: 'KB',
+  mode: 'balanced',
+  auto: true,
+  maxWidth: '',
+  fpsReduction: '',
+  colorLimit: ''
+} as const;
 
 function targetBytes(): number {
   return toTargetBytes(Number(targetValueInput.value), targetUnitSelect.value === 'MB' ? 'MB' : 'KB');
@@ -319,6 +335,54 @@ function currentSettings() {
     maxFrameStep: toNullablePositiveInteger(fpsReductionSelect.value),
     colorLimit: toNullablePositiveInteger(colorLimitSelect.value)
   };
+}
+
+function formatCurrentSettings(): string {
+  const settings = currentSettings();
+  const modeLabel = settings.mode === 'high' ? 'High Compression' : settings.mode === 'quality' ? 'Best Quality' : 'Balanced';
+  const widthLabel = settings.maxWidth ? `${settings.maxWidth}px` : 'Auto';
+  const fpsLabel = settings.maxFrameStep ? (settings.maxFrameStep === 1 ? 'No reduction' : `Every ${settings.maxFrameStep}th frame`) : 'Auto';
+  const colorLabel = settings.colorLimit ? `${settings.colorLimit} colors` : 'Auto';
+  return `Current settings: target ${formatBytes(settings.targetBytes)}, mode ${modeLabel}, max width ${widthLabel}, FPS reduction ${fpsLabel}, color limit ${colorLabel}, ${settings.auto ? 'auto mode on' : 'auto mode off'}.`;
+}
+
+function renderSettingsSummary(): void {
+  setNotice(settingsSummary, formatCurrentSettings(), false);
+}
+
+function applyDefaultSettings(): void {
+  targetValueInput.value = defaultSettings.targetValue;
+  targetUnitSelect.value = defaultSettings.targetUnit;
+  compressionModeSelect.value = defaultSettings.mode;
+  autoModeInput.checked = defaultSettings.auto;
+  maxWidthInput.value = defaultSettings.maxWidth;
+  fpsReductionSelect.value = defaultSettings.fpsReduction;
+  colorLimitSelect.value = defaultSettings.colorLimit;
+}
+
+function setCompressionUiState(isRunning: boolean): void {
+  targetValueInput.disabled = isRunning;
+  targetUnitSelect.disabled = isRunning;
+  compressionModeSelect.disabled = isRunning;
+  autoModeInput.disabled = isRunning;
+  maxWidthInput.disabled = isRunning;
+  fpsReductionSelect.disabled = isRunning;
+  colorLimitSelect.disabled = isRunning;
+  compressButton.disabled = isRunning || selectedFile === null;
+  cancelButton.disabled = !isRunning;
+  resetSettingsButton.disabled = isRunning;
+  resetButton.disabled = isRunning || selectedFile === null;
+}
+
+function clearResultForSettingsChange(message: string): void {
+  if (!selectedFile) {
+    return;
+  }
+
+  if (compressedPreviewUrl || !resultActions.classList.contains('hidden')) {
+    resetCompressedOutput();
+    setNotice(statusBox, message, false);
+  }
 }
 
 function setNotice(element: HTMLDivElement, text: string, hidden = false): void {
@@ -387,8 +451,8 @@ function resetAll(): void {
   originalPreview.classList.add('empty-state');
   originalPreview.textContent = 'No GIF selected yet.';
   originalStats.innerHTML = '';
+  setCompressionUiState(false);
   compressButton.disabled = true;
-  cancelButton.disabled = true;
   resetButton.disabled = true;
   setNotice(selectionStatus, '', true);
   setNotice(statusBox, '', true);
@@ -408,10 +472,8 @@ function applySelectedFile(file: File): void {
   const validationError = validateGifFile(file);
 
   if (validationError) {
-    selectedFile = null;
-    compressButton.disabled = true;
     setNotice(errorBox, validationError, false);
-    setNotice(selectionStatus, '', true);
+    setCompressionUiState(false);
     return;
   }
 
@@ -427,9 +489,7 @@ function applySelectedFile(file: File): void {
   originalPreview.parentElement?.classList.add('selected-card');
   renderStats(originalStats, selectedFileStats(file));
 
-  compressButton.disabled = false;
-  cancelButton.disabled = true;
-  resetButton.disabled = false;
+  setCompressionUiState(false);
 }
 
 async function handleCompression(): Promise<void> {
@@ -437,8 +497,7 @@ async function handleCompression(): Promise<void> {
     return;
   }
 
-  compressButton.disabled = true;
-  cancelButton.disabled = false;
+  setCompressionUiState(true);
   setNotice(errorBox, '', true);
   setNotice(statusBox, 'Preparing GIF for compression...', false);
   resetCompressedOutput();
@@ -463,8 +522,7 @@ async function handleCompression(): Promise<void> {
     setNotice(errorBox, message, false);
   } finally {
     activeCompressionTask = null;
-    compressButton.disabled = false;
-    cancelButton.disabled = true;
+    setCompressionUiState(false);
   }
 }
 
@@ -478,8 +536,20 @@ function cancelCompression(): void {
   progressWrap.classList.add('hidden');
   progressBar.value = 0;
   setNotice(statusBox, 'Compression cancelled.', false);
-  compressButton.disabled = selectedFile === null;
-  cancelButton.disabled = true;
+  setCompressionUiState(false);
+}
+
+function resetSettings(): void {
+  applyDefaultSettings();
+  updateWarning();
+  renderSettingsSummary();
+  clearResultForSettingsChange('Compression settings were reset. Compress again to generate a new GIF with the default settings.');
+}
+
+function handleSettingsChange(): void {
+  updateWarning();
+  renderSettingsSummary();
+  clearResultForSettingsChange('Compression settings changed. Compress again to generate a new GIF with the updated settings.');
 }
 
 function renderCompressionResult(fileName: string, result: CompressionResult): void {
@@ -553,16 +623,17 @@ compressButton.addEventListener('click', () => {
   void handleCompression();
 });
 cancelButton.addEventListener('click', cancelCompression);
+resetSettingsButton.addEventListener('click', resetSettings);
 resetButton.addEventListener('click', resetAll);
 targetValueInput.addEventListener('input', () => {
-  updateWarning();
+  handleSettingsChange();
 });
-targetUnitSelect.addEventListener('change', updateWarning);
-compressionModeSelect.addEventListener('change', updateWarning);
-autoModeInput.addEventListener('change', updateWarning);
-maxWidthInput.addEventListener('input', updateWarning);
-fpsReductionSelect.addEventListener('change', updateWarning);
-colorLimitSelect.addEventListener('change', updateWarning);
+targetUnitSelect.addEventListener('change', handleSettingsChange);
+compressionModeSelect.addEventListener('change', handleSettingsChange);
+autoModeInput.addEventListener('change', handleSettingsChange);
+maxWidthInput.addEventListener('input', handleSettingsChange);
+fpsReductionSelect.addEventListener('change', handleSettingsChange);
+colorLimitSelect.addEventListener('change', handleSettingsChange);
 
 downloadButton.addEventListener('click', (event) => {
   if (!downloadButton.href) {
@@ -570,4 +641,6 @@ downloadButton.addEventListener('click', (event) => {
   }
 });
 
+applyDefaultSettings();
 updateWarning();
+renderSettingsSummary();
