@@ -1,18 +1,29 @@
-# GIF Compressor Tool
+# GIF Tools
 
-A real browser-based animated GIF compressor built with Vite and TypeScript. It decodes GIF frames with `gifuct-js`, applies real compression passes, and re-encodes a valid animated GIF with `gifenc` entirely on the client side.
+A production-ready browser-based toolkit built with Vite and TypeScript. It currently includes two real client-side tools:
+
+- `https://gif.itisuniqueofficial.com/` - GIF Compressor
+- `https://gif.itisuniqueofficial.com/mp4-to-gif` - MP4 to GIF Converter
+
+Both tools run fully in the browser, use worker-based processing, and do not upload files to any server.
 
 Repository URL: `https://github.com/rudraksha-avatar/gif-compressor-tool`
 
 Live site: `https://gif.itisuniqueofficial.com/`
 
+MP4 to GIF route: `https://gif.itisuniqueofficial.com/mp4-to-gif`
+
 ## Features
 
 - Real animated GIF decoding and re-encoding in the browser
+- Real MP4 to GIF conversion in the browser with FFmpeg.wasm
 - Balanced, High Compression, and Best Quality modes
 - Auto mode plus manual controls for width, colors, and frame skipping
+- MP4 controls for start time, end time, duration, width, FPS, and quality mode
 - Drag and drop upload with GIF validation
+- Drag and drop upload with MP4 validation
 - Original and compressed GIF preview panels
+- Original MP4 preview and converted GIF preview panels
 - Real size savings, frame count, dimensions, and color reporting
 - Duration and estimated FPS diagnostics in results
 - Web Worker processing to keep the UI responsive
@@ -28,6 +39,7 @@ Live site: `https://gif.itisuniqueofficial.com/`
 - HTML
 - CSS
 - Web Worker
+- `@ffmpeg/ffmpeg`
 - `gifuct-js`
 - `gifenc`
 
@@ -57,13 +69,22 @@ The production output is written to `dist`.
 npm run preview
 ```
 
+## Available Routes
+
+- `/` - GIF Compressor
+- `/mp4-to-gif` - MP4 to GIF Converter
+
 ## How It Works
 
 - The app accepts only real GIF files.
+- The MP4 tool accepts only real `.mp4` video files.
 - The worker decodes the input GIF into animation frames.
+- The MP4 worker loads FFmpeg.wasm and converts video segments into animated GIF output.
 - Each frame is composited into a full RGBA frame.
 - The compressor supports `Balanced`, `High Compression`, and `Best Quality` modes.
+- The MP4 converter supports `Best Quality`, `Balanced`, and `Small Size` modes.
 - It can use auto mode or manual limits for width, frame skipping, and color reduction.
+- MP4 conversion can trim by start time, end time, and duration limit.
 - The compressor tries progressive passes using real animated GIF re-encoding:
   - resize dimensions
   - palette reduction
@@ -77,6 +98,7 @@ npm run preview
 
 - Modern Chromium, Firefox, and Safari browsers are supported.
 - If `OffscreenCanvas` is unavailable or limited, the worker falls back to direct pixel resizing.
+- FFmpeg.wasm conversion works best on modern browsers with enough available memory.
 - Corrupted or unsupported GIF files return clearer parse/decode errors instead of failing silently.
 
 ## Compression Strategy
@@ -109,6 +131,8 @@ If the target cannot be reached, the app returns the smallest valid animated GIF
    - Production branch: `main`
 7. Deploy.
 
+For SPA route support on Cloudflare Pages, this project includes `public/_redirects` so `/mp4-to-gif` resolves correctly.
+
 ## Custom Domain Setup
 
 1. In Cloudflare Pages, open the deployed project.
@@ -126,9 +150,12 @@ Final production URL:
 
 Your GIF is compressed locally in your browser. No file is uploaded to any server. GIF frames are decoded and re-encoded in the browser using a Web Worker so the tool remains client-side only.
 
+Your MP4 is also converted locally in your browser with FFmpeg.wasm in a worker and is never uploaded to any server.
+
 ## Known Limitations
 
 - Very large GIFs can use a lot of memory because all frames must be decoded and rebuilt in the browser.
+- Very large MP4 files or long video segments can use significant browser memory during FFmpeg conversion.
 - Aggressive compression may reduce dimensions, palette depth, or animation smoothness.
 - Transparency is preserved as much as practical through RGBA palette quantization, but some edge quality loss is possible with small palettes.
 - Some malformed GIF files may expose only partial metadata before compression, even if decode still succeeds later in the worker.
@@ -161,12 +188,15 @@ MIT. See `LICENSE`.
 ## Final Testing Checklist
 
 - GIF upload works
+- MP4 upload works
 - Invalid file error works
 - Selected file details show correctly
 - Reset works completely
 - Compression creates a real animated GIF
+- MP4 converts to a real animated GIF
 - Download works
 - Same file can be selected again after reset
+- `/mp4-to-gif` route works
 - UI works on mobile with no horizontal scrolling
 - No console errors during normal use
 - `npm run build` succeeds

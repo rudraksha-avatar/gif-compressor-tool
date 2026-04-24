@@ -1,5 +1,5 @@
 import { parseGIF } from 'gifuct-js';
-import type { GifFileMetadata } from './types';
+import type { GifFileMetadata, VideoFileMetadata } from './types';
 
 export type SizeUnit = 'KB' | 'MB';
 
@@ -40,6 +40,21 @@ export function validateGifFile(file: File): string | null {
   return null;
 }
 
+export function validateMp4File(file: File): string | null {
+  const hasMp4Mime = file.type === 'video/mp4';
+  const hasMp4Extension = file.name.toLowerCase().endsWith('.mp4');
+
+  if (!hasMp4Mime && !hasMp4Extension) {
+    return 'Please choose a valid MP4 video file.';
+  }
+
+  if (file.size === 0) {
+    return 'The selected MP4 file is empty.';
+  }
+
+  return null;
+}
+
 export function cleanupObjectUrl(url: string): void {
   if (url) {
     URL.revokeObjectURL(url);
@@ -68,6 +83,20 @@ export function getBrowserSupportIssue(): string | null {
   return null;
 }
 
+export function getMp4BrowserSupportIssue(): string | null {
+  const issue = getBrowserSupportIssue();
+
+  if (issue) {
+    return issue;
+  }
+
+  if (typeof HTMLVideoElement === 'undefined') {
+    return 'This browser cannot preview local video files required for MP4 to GIF conversion.';
+  }
+
+  return null;
+}
+
 export async function readGifMetadata(file: File): Promise<GifFileMetadata | null> {
   try {
     const buffer = await file.arrayBuffer();
@@ -88,4 +117,36 @@ export async function readGifMetadata(file: File): Promise<GifFileMetadata | nul
   } catch {
     return null;
   }
+}
+
+export async function readVideoMetadata(file: File): Promise<VideoFileMetadata | null> {
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.muted = true;
+
+    const cleanup = (): void => {
+      video.removeAttribute('src');
+      video.load();
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    video.onloadedmetadata = () => {
+      const metadata = {
+        width: video.videoWidth,
+        height: video.videoHeight,
+        duration: video.duration
+      };
+      cleanup();
+      resolve(Number.isFinite(metadata.duration) ? metadata : null);
+    };
+
+    video.onerror = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    video.src = objectUrl;
+  });
 }
