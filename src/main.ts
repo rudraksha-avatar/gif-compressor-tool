@@ -879,15 +879,57 @@ function initNavigation(): void {
     return;
   }
 
+  const dropdowns = Array.from(navigation.querySelectorAll<HTMLElement>('[data-dropdown]'));
+
+  const closeDropdown = (dropdown: HTMLElement): void => {
+    dropdown.classList.remove('is-open');
+    dropdown.querySelector<HTMLButtonElement>('[data-dropdown-toggle]')?.setAttribute('aria-expanded', 'false');
+  };
+
+  const closeAllDropdowns = (except?: HTMLElement): void => {
+    dropdowns.forEach((dropdown) => {
+      if (dropdown !== except) {
+        closeDropdown(dropdown);
+      }
+    });
+  };
+
+  const toggleDropdown = (dropdown: HTMLElement): void => {
+    const shouldOpen = !dropdown.classList.contains('is-open');
+    closeAllDropdowns(dropdown);
+    dropdown.classList.toggle('is-open', shouldOpen);
+    dropdown.querySelector<HTMLButtonElement>('[data-dropdown-toggle]')?.setAttribute('aria-expanded', String(shouldOpen));
+  };
+
   const closeMenu = (): void => {
     navigation.dataset.open = 'false';
     menuToggle.setAttribute('aria-expanded', 'false');
+    closeAllDropdowns();
   };
 
   menuToggle.addEventListener('click', () => {
     const isOpen = navigation.dataset.open === 'true';
     navigation.dataset.open = isOpen ? 'false' : 'true';
     menuToggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    closeAllDropdowns();
+  });
+
+  navigation.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const toggle = target.closest<HTMLElement>('[data-dropdown-toggle]');
+
+    if (toggle) {
+      const dropdown = toggle.closest<HTMLElement>('[data-dropdown]');
+      if (dropdown) {
+        event.preventDefault();
+        toggleDropdown(dropdown);
+      }
+      return;
+    }
+
+    if (target.closest('[role="menuitem"]')) {
+      closeAllDropdowns();
+    }
   });
 
   navigation.querySelectorAll('a').forEach((link) => {
@@ -898,9 +940,26 @@ function initNavigation(): void {
     });
   });
 
+  document.addEventListener('click', (event) => {
+    const target = event.target as Node;
+    if (!navigation.contains(target)) {
+      closeAllDropdowns();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      const openToggle = navigation.querySelector<HTMLButtonElement>('.dropdown.is-open [data-dropdown-toggle]');
+      closeAllDropdowns();
+      openToggle?.focus();
+    }
+  });
+
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 960) {
       closeMenu();
+    } else {
+      closeAllDropdowns();
     }
   });
 }

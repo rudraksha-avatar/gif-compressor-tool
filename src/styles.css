@@ -371,7 +371,8 @@ small {
   align-items: flex-start;
 }
 
-.topnav a {
+.topnav a,
+.dropdown-toggle {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -383,10 +384,13 @@ small {
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
   border: 1px solid transparent;
+  background: transparent;
   transition: background-color 0.1s, color 0.1s;
 }
 
-.topnav a:hover {
+.topnav a:hover,
+.dropdown-toggle:hover,
+.dropdown-toggle[aria-expanded='true'] {
   color: var(--color-text);
   background: var(--color-surface-alt);
   text-decoration: none;
@@ -443,31 +447,29 @@ small {
   position: relative;
 }
 
-.nav-tools summary {
-  list-style: none;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 8px 12px;
-  color: var(--color-text-muted);
+.dropdown-toggle {
   cursor: pointer;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-.nav-tools summary::-webkit-details-marker {
-  display: none;
-}
-
-.nav-tools summary:hover {
-  color: var(--color-text);
-  background: var(--color-surface-alt);
 }
 
 .nav-tools-menu {
   display: grid;
+  max-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
   gap: 2px;
+  padding: 0;
+  transition: opacity 0.14s ease, transform 0.14s ease, max-height 0.14s ease, padding 0.14s ease;
+}
+
+.dropdown.is-open .nav-tools-menu {
+  max-height: 720px;
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
   padding: var(--space-2) 0;
 }
 
@@ -912,7 +914,8 @@ a.secondary-button {
 button:disabled,
 .btn:disabled,
 a[aria-disabled='true'],
-.menu-toggle:disabled {
+.menu-toggle:disabled,
+.dropdown-toggle:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
@@ -1483,6 +1486,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 .menu-toggle:focus-visible,
+.dropdown-toggle:focus-visible,
 .dropzone:focus-visible,
 summary:focus-visible {
   outline: 2px solid var(--color-accent);

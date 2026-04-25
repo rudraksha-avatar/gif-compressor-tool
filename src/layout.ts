@@ -32,18 +32,21 @@ const TOOL_LINKS = [
 
 function renderNavLinks(currentRoute: string): string {
   const toolsMenu = `
-    <details class="nav-tools"${TOOL_LINKS.some(link => link.href === currentRoute) || currentRoute === '/tools' ? ' open' : ''}>
-      <summary><i class="fa-solid fa-toolbox" aria-hidden="true"></i><span>Tools</span></summary>
-      <div class="nav-tools-menu">
-        <a href="/tools"${currentRoute === '/tools' ? ' aria-current="page"' : ''}><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i><span>All Tools</span></a>
+    <div class="nav-tools dropdown" data-dropdown>
+      <button class="dropdown-toggle" type="button" aria-expanded="false" aria-controls="tools-menu" data-dropdown-toggle>
+        <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
+        <span>Tools</span>
+      </button>
+      <div class="nav-tools-menu dropdown-menu" id="tools-menu" role="menu" aria-label="GIF tools" data-dropdown-menu>
+        <a href="/tools" role="menuitem"${currentRoute === '/tools' ? ' aria-current="page"' : ''}><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i><span>All Tools</span></a>
         ${TOOL_LINKS.map(link =>
-          `<a href="${link.href}"${currentRoute === link.href ? ' aria-current="page"' : ''}>
+          `<a href="${link.href}" role="menuitem"${currentRoute === link.href ? ' aria-current="page"' : ''}>
             <i class="${link.icon}" aria-hidden="true"></i>
             <span>${link.label}</span>
           </a>`
         ).join('')}
       </div>
-    </details>
+    </div>
   `;
 
   return `${toolsMenu}${NAV_LINKS.map(link =>
