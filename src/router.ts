@@ -19,5 +19,6 @@ export const KNOWN_ROUTES: AppRoute[] = [
 ];
 
 export function resolveRoute(pathname: string): AppRoute | null {
-  return KNOWN_ROUTES.includes(pathname as AppRoute) ? (pathname as AppRoute) : null;
+  const normalizedPath = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  return KNOWN_ROUTES.includes(normalizedPath as AppRoute) ? (normalizedPath as AppRoute) : null;
 }

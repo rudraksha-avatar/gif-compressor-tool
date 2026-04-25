@@ -14,18 +14,44 @@ export interface ToolPageConfig {
 const NAV_LINKS = [
   { href: '/', label: 'GIF Compressor', icon: 'fa-regular fa-file-image' },
   { href: '/mp4-to-gif', label: 'MP4 to GIF', icon: 'fa-solid fa-film' },
-  { href: '/tools', label: 'Tools', icon: 'fa-solid fa-toolbox' },
   { href: '/privacy', label: 'Privacy', icon: 'fa-solid fa-shield-halved' },
   { href: '/faq', label: 'FAQ', icon: 'fa-regular fa-circle-question' },
 ];
 
+const TOOL_LINKS = [
+  { href: '/', label: 'GIF Compressor', icon: 'fa-regular fa-file-image' },
+  { href: '/mp4-to-gif', label: 'MP4 to GIF', icon: 'fa-solid fa-film' },
+  { href: '/gif-to-mp4', label: 'GIF to MP4', icon: 'fa-solid fa-video' },
+  { href: '/gif-resizer', label: 'GIF Resizer', icon: 'fa-solid fa-up-right-and-down-left-from-center' },
+  { href: '/gif-crop', label: 'GIF Cropper', icon: 'fa-solid fa-crop-simple' },
+  { href: '/gif-speed', label: 'GIF Speed Changer', icon: 'fa-solid fa-gauge-high' },
+  { href: '/gif-split', label: 'GIF Frame Splitter', icon: 'fa-regular fa-images' },
+  { href: '/gif-maker', label: 'GIF Maker', icon: 'fa-solid fa-wand-magic-sparkles' },
+  { href: '/gif-optimizer', label: 'Advanced GIF Optimizer', icon: 'fa-solid fa-sliders' }
+];
+
 function renderNavLinks(currentRoute: string): string {
-  return NAV_LINKS.map(link =>
+  const toolsMenu = `
+    <details class="nav-tools"${TOOL_LINKS.some(link => link.href === currentRoute) || currentRoute === '/tools' ? ' open' : ''}>
+      <summary><i class="fa-solid fa-toolbox" aria-hidden="true"></i><span>Tools</span></summary>
+      <div class="nav-tools-menu">
+        <a href="/tools"${currentRoute === '/tools' ? ' aria-current="page"' : ''}><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i><span>All Tools</span></a>
+        ${TOOL_LINKS.map(link =>
+          `<a href="${link.href}"${currentRoute === link.href ? ' aria-current="page"' : ''}>
+            <i class="${link.icon}" aria-hidden="true"></i>
+            <span>${link.label}</span>
+          </a>`
+        ).join('')}
+      </div>
+    </details>
+  `;
+
+  return `${toolsMenu}${NAV_LINKS.map(link =>
     `<a href="${link.href}"${currentRoute === link.href ? ' aria-current="page"' : ''}>
       <i class="${link.icon}" aria-hidden="true"></i>
       <span>${link.label}</span>
     </a>`
-  ).join('');
+  ).join('')}`;
 }
 
 function renderHowItWorks(items: Array<{ title: string; description: string }>): string {
@@ -226,9 +252,8 @@ export function renderLayout(config: ToolPageConfig): string {
             <div class="footer-col">
               <h3><i class="fa-solid fa-toolbox" aria-hidden="true"></i> Tools</h3>
               <nav class="footer-nav" aria-label="Footer tools">
-                <a href="/"><i class="fa-regular fa-file-image" aria-hidden="true"></i> GIF Compressor</a>
-                <a href="/mp4-to-gif"><i class="fa-solid fa-film" aria-hidden="true"></i> MP4 to GIF</a>
                 <a href="/tools"><i class="fa-solid fa-toolbox" aria-hidden="true"></i> All Tools</a>
+                ${TOOL_LINKS.map(link => `<a href="${link.href}"><i class="${link.icon}" aria-hidden="true"></i> ${link.label}</a>`).join('')}
               </nav>
             </div>
 
