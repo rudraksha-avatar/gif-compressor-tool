@@ -2,10 +2,19 @@ import './styles.css';
 import { compressGif } from './gif-compressor';
 import { cropGif } from './gif-crop';
 import { makeGif } from './gif-maker';
+import { aboutPageHtml } from './pages/about';
+import { contactPageHtml } from './pages/contact';
+import { faqPageHtml } from './pages/faq';
+import { homePageMeta } from './pages/home';
 import { convertGifToMp4 } from './gif-to-mp4';
+import { mp4ToGifPageMeta } from './pages/mp4ToGifPage';
+import { notFoundPageHtml } from './pages/notFound';
+import { privacyPageHtml } from './pages/privacy';
+import { toolsDirectoryHtml } from './pages/tools';
 import { resizeGif } from './gif-resizer';
 import { splitGifFrames } from './gif-split';
 import { changeGifSpeed } from './gif-speed';
+import { resolveRoute } from './router';
 import JSZip from 'jszip';
 import { renderLayout, type ToolPageConfig } from './layout';
 import { MemoryManager } from './memory-manager';
@@ -48,8 +57,7 @@ if (!app) {
   throw new Error('App root element not found.');
 }
 
-const knownRoutes: AppRoute[] = ['/', '/mp4-to-gif', '/gif-to-mp4', '/gif-resizer', '/gif-speed', '/gif-optimizer', '/gif-crop', '/gif-split', '/gif-maker'];
-const route = (knownRoutes.includes(window.location.pathname as AppRoute) ? window.location.pathname : '/') as AppRoute;
+const route = (resolveRoute(window.location.pathname) ?? '/404.html') as AppRoute;
 
 function setMeta(selector: string, attribute: 'content' | 'href', value: string): void {
   const element = document.querySelector<HTMLMetaElement | HTMLLinkElement>(selector);
@@ -113,6 +121,42 @@ function updateSeo(currentRoute: AppRoute): void {
       description: 'Optimize animated GIF files with advanced size, color, scale, and frame controls directly in your browser.',
       name: 'Advanced GIF Optimizer',
       features: ['Advanced GIF optimization', 'Manual compression controls', 'Responsive design', 'Privacy-friendly processing']
+    },
+    '/tools': {
+      title: 'GIF Tools - Browser-Based GIF Utilities',
+      description: 'Private browser-based tools for compressing, converting, resizing, cropping, splitting, and creating GIF files.',
+      name: 'GIF Tools',
+      features: ['Tool directory', 'Browser-based media workflows', 'Responsive design']
+    },
+    '/privacy': {
+      title: 'Privacy Policy - GIF Tools',
+      description: 'Read how GIF Tools processes files locally in your browser with no server upload.',
+      name: 'GIF Tools Privacy Policy',
+      features: ['Local processing', 'No upload workflow', 'Browser privacy explanation']
+    },
+    '/about': {
+      title: 'About - GIF Tools',
+      description: 'Learn about GIF Tools and its browser-based GIF utilities.',
+      name: 'About GIF Tools',
+      features: ['About page', 'Browser-based tools', 'It Is Unique Official']
+    },
+    '/contact': {
+      title: 'Contact - GIF Tools',
+      description: 'Contact GIF Tools for support, bug reports, and suggestions.',
+      name: 'Contact GIF Tools',
+      features: ['Contact information', 'Support links', 'Bug report guidance']
+    },
+    '/faq': {
+      title: 'FAQ - GIF Tools',
+      description: 'Read common questions about GIF compression, MP4 conversion, privacy, and browser processing.',
+      name: 'GIF Tools FAQ',
+      features: ['FAQ page', 'Privacy answers', 'Browser processing answers']
+    },
+    '/404.html': {
+      title: 'Page Not Found - GIF Tools',
+      description: 'The page you requested could not be found on GIF Tools.',
+      name: 'GIF Tools 404',
+      features: ['Custom 404 page', 'Navigation back to tools']
     }
   };
   const config = seoConfig[currentRoute];
@@ -505,9 +549,9 @@ function gifMakerToolHtml(): string {
 
 const gifPageConfig: ToolPageConfig = {
   route: '/',
-  toolName: 'GIF Compressor',
-  eyebrow: 'Real browser-based GIF compression',
-  intro: 'Compress animated GIFs under 1 MB directly in your browser.',
+  toolName: homePageMeta.title,
+  eyebrow: homePageMeta.eyebrow,
+  intro: homePageMeta.description,
   heroCopy: 'This tool decodes GIF frames, applies real compression passes, and re-encodes a valid animated GIF file that stays previewable, downloadable, and animated.',
   privacyNote: 'Your GIF is compressed locally in your browser. No file is uploaded to any server.',
   toolHtml: gifToolHtml(),
@@ -530,9 +574,9 @@ const gifPageConfig: ToolPageConfig = {
 
 const mp4PageConfig: ToolPageConfig = {
   route: '/mp4-to-gif',
-  toolName: 'MP4 to GIF Converter',
-  eyebrow: 'Real browser-based MP4 to GIF conversion',
-  intro: 'Convert MP4 videos to animated GIFs directly in your browser.',
+  toolName: mp4ToGifPageMeta.title,
+  eyebrow: mp4ToGifPageMeta.eyebrow,
+  intro: mp4ToGifPageMeta.description,
   heroCopy: 'This tool trims video segments, applies real GIF conversion settings, and outputs a valid animated GIF file without uploading your MP4 anywhere.',
   privacyNote: 'Your MP4 is converted locally in your browser. No file is uploaded to any server.',
   toolHtml: mp4ToolHtml(),
@@ -728,6 +772,84 @@ const gifMakerPageConfig: ToolPageConfig = {
   ]
 };
 
+const toolsPageConfig: ToolPageConfig = {
+  route: '/tools',
+  toolName: 'GIF Tools',
+  eyebrow: 'PRIVATE BROWSER-BASED GIF UTILITIES',
+  intro: 'Private browser-based tools for compressing, converting, and optimizing GIF files.',
+  heroCopy: 'Browse the available GIF workflows and open the tool you need from one shared responsive design system.',
+  privacyNote: 'Your files are processed locally in your browser. No file is uploaded to any server.',
+  toolHtml: toolsDirectoryHtml,
+  howItWorks: [],
+  features: [],
+  faq: []
+};
+
+const privacyPageConfig: ToolPageConfig = {
+  route: '/privacy',
+  toolName: 'Privacy Policy',
+  eyebrow: 'LOCAL BROWSER PROCESSING',
+  intro: 'Understand how GIF Tools handles your files entirely in your browser.',
+  heroCopy: 'GIF Tools is designed for browser-side media processing so files stay on your device during normal use.',
+  privacyNote: 'Your files are processed locally in your browser. No file is uploaded to any server.',
+  toolHtml: privacyPageHtml,
+  howItWorks: [],
+  features: [],
+  faq: []
+};
+
+const aboutPageConfig: ToolPageConfig = {
+  route: '/about',
+  toolName: 'About GIF Tools',
+  eyebrow: 'PRIVATE MEDIA UTILITIES',
+  intro: 'GIF Tools provides fast and simple browser-based GIF utilities.',
+  heroCopy: 'The platform focuses on real media processing, responsive UX, and shared design consistency across GIF workflows.',
+  privacyNote: 'Your files are processed locally in your browser. No file is uploaded to any server.',
+  toolHtml: aboutPageHtml,
+  howItWorks: [],
+  features: [],
+  faq: []
+};
+
+const contactPageConfig: ToolPageConfig = {
+  route: '/contact',
+  toolName: 'Contact',
+  eyebrow: 'SUPPORT AND FEEDBACK',
+  intro: 'Get in touch for support, bug reports, and suggestions.',
+  heroCopy: 'Use the information below if you need help or want to share ideas for improving GIF Tools.',
+  privacyNote: 'Your files are processed locally in your browser. No file is uploaded to any server.',
+  toolHtml: contactPageHtml,
+  howItWorks: [],
+  features: [],
+  faq: []
+};
+
+const faqPageConfig: ToolPageConfig = {
+  route: '/faq',
+  toolName: 'Frequently Asked Questions',
+  eyebrow: 'ANSWERS ABOUT GIF TOOLS',
+  intro: 'Read common questions about browser-based GIF processing and media conversion.',
+  heroCopy: 'This page explains how local GIF and MP4 processing works and what to expect on different devices and browsers.',
+  privacyNote: 'Your files are processed locally in your browser. No file is uploaded to any server.',
+  toolHtml: faqPageHtml,
+  howItWorks: [],
+  features: [],
+  faq: []
+};
+
+const notFoundPageConfig: ToolPageConfig = {
+  route: '/404.html',
+  toolName: 'Page Not Found',
+  eyebrow: 'CUSTOM 404 PAGE',
+  intro: 'The page you are looking for may have moved, been removed, or never existed.',
+  heroCopy: 'Use the buttons below to go home or browse the available GIF tools.',
+  privacyNote: 'Your files are processed locally in your browser. No file is uploaded to any server.',
+  toolHtml: notFoundPageHtml,
+  howItWorks: [],
+  features: [],
+  faq: []
+};
+
 const routeConfigMap: Record<AppRoute, ToolPageConfig> = {
   '/': gifPageConfig,
   '/mp4-to-gif': mp4PageConfig,
@@ -737,7 +859,13 @@ const routeConfigMap: Record<AppRoute, ToolPageConfig> = {
   '/gif-speed': gifSpeedPageConfig,
   '/gif-split': gifSplitPageConfig,
   '/gif-maker': gifMakerPageConfig,
-  '/gif-optimizer': gifOptimizerPageConfig
+  '/gif-optimizer': gifOptimizerPageConfig,
+  '/tools': toolsPageConfig,
+  '/privacy': privacyPageConfig,
+  '/about': aboutPageConfig,
+  '/contact': contactPageConfig,
+  '/faq': faqPageConfig,
+  '/404.html': notFoundPageConfig
 };
 
 updateSeo(route);

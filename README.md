@@ -1,285 +1,199 @@
 # GIF Tools
 
-A production-ready browser-based toolkit built with Vite and TypeScript. It currently includes these real client-side tools:
+A production-ready, fully responsive, browser-based GIF processing platform. All tools run entirely client-side using Web Workers, FFmpeg.wasm, and real GIF processing libraries. No file is uploaded to any server.
 
-- `https://gif.itisuniqueofficial.com/` - GIF Compressor
-- `https://gif.itisuniqueofficial.com/mp4-to-gif` - MP4 to GIF Converter
-- `https://gif.itisuniqueofficial.com/gif-to-mp4` - GIF to MP4 Converter
-- `https://gif.itisuniqueofficial.com/gif-resizer` - GIF Resizer
-- `https://gif.itisuniqueofficial.com/gif-crop` - GIF Cropper
-- `https://gif.itisuniqueofficial.com/gif-speed` - GIF Speed Changer
-- `https://gif.itisuniqueofficial.com/gif-split` - GIF Frame Splitter
-- `https://gif.itisuniqueofficial.com/gif-maker` - GIF Maker
-- `https://gif.itisuniqueofficial.com/gif-optimizer` - Advanced GIF Optimizer
+**Production URL:** https://gif.itisuniqueofficial.com/
 
-Both tools run fully in the browser, use worker-based processing, and do not upload files to any server.
+---
 
-Repository URL: `https://github.com/rudraksha-avatar/gif-compressor-tool`
+## Available Pages
 
-Live site: `https://gif.itisuniqueofficial.com/`
+| Route | Description |
+|-------|-------------|
+| `/` | GIF Compressor |
+| `/mp4-to-gif` | MP4 to GIF Converter |
+| `/gif-to-mp4` | GIF to MP4 Converter |
+| `/gif-resizer` | GIF Resizer |
+| `/gif-crop` | GIF Cropper |
+| `/gif-speed` | GIF Speed Changer |
+| `/gif-split` | GIF Frame Splitter |
+| `/gif-maker` | GIF Maker |
+| `/gif-optimizer` | Advanced GIF Optimizer |
+| `/tools` | Tools Directory |
+| `/about` | About |
+| `/privacy` | Privacy Policy |
+| `/contact` | Contact |
+| `/faq` | FAQ |
+| `/404.html` | Custom 404 Page |
 
-MP4 to GIF route: `https://gif.itisuniqueofficial.com/mp4-to-gif`
+---
 
-## Features
+## Available Tools
 
-- Real animated GIF decoding and re-encoding in the browser
-- Real MP4 to GIF conversion in the browser with FFmpeg.wasm
-- Real GIF to MP4 conversion in the browser with FFmpeg.wasm
-- Real GIF resizing in the browser
-- Real GIF cropping in the browser
-- Real GIF speed changes in the browser
-- Real GIF frame extraction into PNG images
-- Real GIF creation from uploaded images
-- Balanced, High Compression, and Best Quality modes
-- Auto mode plus manual controls for width, colors, and frame skipping
-- MP4 controls for start time, end time, duration, width, FPS, and quality mode
-- Drag and drop upload with GIF validation
-- Drag and drop upload with MP4 validation
-- Original and compressed GIF preview panels
-- Original MP4 preview and converted GIF preview panels
-- Real size savings, frame count, dimensions, and color reporting
-- Duration and estimated FPS diagnostics in results
-- Web Worker processing to keep the UI responsive
-- Cancel button for long-running compression jobs
-- Worker-side memory guard for extremely large GIFs
-- Shared object URL cleanup and memory reset flow between tools
-- FFmpeg virtual file cleanup after MP4 conversion
-- Responsive layout for mobile, tablet, and desktop
-- SEO-ready metadata, sitemap, robots.txt, and JSON-LD
+### GIF Compressor (`/`)
+Compresses animated GIFs using real frame processing. Decodes GIF frames with gifuct-js, applies compression strategies (resizing, palette reduction, frame skipping), and re-encodes a valid animated GIF using gifenc. Supports target size, compression mode (balanced/high/quality), auto mode, max width, FPS reduction, and color limit controls.
 
-## Tech Stack
+### MP4 to GIF Converter (`/mp4-to-gif`)
+Converts MP4 video segments to animated GIFs using FFmpeg.wasm running in a Web Worker. Supports start/end time trimming, duration limit, output width, FPS, quality mode, loop control, and auto-optimization. Uses palettegen and paletteuse filters for better color quality.
 
-- Vite
-- TypeScript
-- HTML
-- CSS
-- Web Worker
-- `@ffmpeg/ffmpeg`
-- `gifuct-js`
-- `gifenc`
+### GIF to MP4 Converter (`/gif-to-mp4`)
+Converts animated GIF files to MP4 video using FFmpeg.wasm. Outputs a valid MP4 with yuv420p pixel format for broad compatibility.
 
-## Tool List
+### GIF Resizer (`/gif-resizer`)
+Resizes animated GIFs using FFmpeg.wasm with lanczos scaling. Supports width/height control and aspect ratio preservation.
 
-1. `https://gif.itisuniqueofficial.com/` - GIF Compressor
-2. `https://gif.itisuniqueofficial.com/mp4-to-gif` - MP4 to GIF Converter
-3. `https://gif.itisuniqueofficial.com/gif-to-mp4` - GIF to MP4 Converter
-4. `https://gif.itisuniqueofficial.com/gif-resizer` - GIF Resizer
-5. `https://gif.itisuniqueofficial.com/gif-crop` - GIF Cropper
-6. `https://gif.itisuniqueofficial.com/gif-speed` - GIF Speed Changer
-7. `https://gif.itisuniqueofficial.com/gif-split` - GIF Frame Splitter
-8. `https://gif.itisuniqueofficial.com/gif-maker` - GIF Maker
-9. `https://gif.itisuniqueofficial.com/gif-optimizer` - Advanced GIF Optimizer
+### GIF Cropper (`/gif-crop`)
+Crops animated GIF frames using FFmpeg.wasm with numeric X/Y/width/height crop controls.
 
-## Install
+### GIF Speed Changer (`/gif-speed`)
+Changes animated GIF playback speed using FFmpeg.wasm setpts filter. Supports 0.25x to 4x speed multipliers.
 
-```bash
-npm install
+### GIF Frame Splitter (`/gif-split`)
+Extracts GIF animation frames as PNG images using gifuct-js. Supports individual frame download and ZIP archive download via JSZip.
+
+### GIF Maker (`/gif-maker`)
+Creates animated GIFs from PNG/JPG image sequences using gifenc and OffscreenCanvas. Supports frame delay and output width controls.
+
+### Advanced GIF Optimizer (`/gif-optimizer`)
+Uses the same real compression engine as the GIF Compressor with advanced manual controls for fine-tuned output.
+
+---
+
+## Real GIF Compression
+
+The GIF Compressor uses a multi-pass compression strategy:
+
+1. **Decode** — gifuct-js parses the GIF and composites frames with proper disposal handling
+2. **Strategy selection** — Builds adaptive compression strategies based on file size, frame count, and duration
+3. **Compress** — Each strategy applies resizing (OffscreenCanvas), palette quantization (gifenc), and frame skipping
+4. **Re-encode** — gifenc encodes a valid animated GIF with preserved loop behavior
+5. **Select best** — Returns the smallest result that meets the target, or the best possible if the target cannot be reached
+
+No fake compression. No renamed formats. Output is always a real animated GIF.
+
+---
+
+## Real MP4 to GIF Conversion
+
+The MP4 to GIF Converter uses FFmpeg.wasm:
+
+1. **Load FFmpeg** — FFmpeg.wasm is loaded from CDN into a Web Worker
+2. **Write input** — The MP4 file is written to the FFmpeg virtual file system
+3. **Generate palette** — `palettegen` filter creates an optimized color palette
+4. **Convert** — `paletteuse` filter applies the palette and outputs a real animated GIF
+5. **Read output** — The GIF bytes are read from the virtual FS and returned
+6. **Cleanup** — Input, palette, and output files are deleted from the virtual FS
+
+---
+
+## FFmpeg.wasm Usage
+
+FFmpeg is loaded from CDN (no bundling):
+
+```
+https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js
+https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm
+https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.worker.js
 ```
 
-## Development
+FFmpeg runs inside a Web Worker to keep the main thread responsive. Temporary files are cleaned up after each operation.
 
-```bash
-npm run dev
-```
+---
 
-## Build
+## Local Privacy
 
-```bash
-npm run build
-```
+- Files are processed in browser memory only
+- No file is uploaded to any server
+- Object URLs are revoked on reset to free memory
+- No tracking cookies or analytics
+- No account required
 
-The production output is written to `dist`.
-
-## Preview
-
-```bash
-npm run preview
-```
-
-## Available Routes
-
-- `/` - GIF Compressor
-- `/mp4-to-gif` - MP4 to GIF Converter
-- `/gif-to-mp4` - GIF to MP4 Converter
-- `/gif-resizer` - GIF Resizer
-- `/gif-crop` - GIF Cropper
-- `/gif-speed` - GIF Speed Changer
-- `/gif-split` - GIF Frame Splitter
-- `/gif-maker` - GIF Maker
-- `/gif-optimizer` - Advanced GIF Optimizer
-
-## How It Works
-
-- The app accepts only real GIF files.
-- The MP4 tool accepts only real `.mp4` video files.
-- The new GIF utilities accept only real animated GIF files.
-- The worker decodes the input GIF into animation frames.
-- The MP4 worker loads FFmpeg.wasm and converts video segments into animated GIF output.
-- The GIF-to-MP4 worker converts animated GIF files into real MP4 video output.
-- The GIF resizer worker rebuilds resized animated GIF output.
-- The GIF crop worker crops animated GIF frames and exports a real cropped GIF.
-- The GIF speed worker changes animation timing and exports a real updated GIF.
-- The GIF split worker extracts frames into real PNG images.
-- The GIF maker worker encodes uploaded image sequences into a real animated GIF.
-- Each frame is composited into a full RGBA frame.
-- The compressor supports `Balanced`, `High Compression`, and `Best Quality` modes.
-- The MP4 converter supports `Best Quality`, `Balanced`, and `Small Size` modes.
-- It can use auto mode or manual limits for width, frame skipping, and color reduction.
-- MP4 conversion can trim by start time, end time, and duration limit.
-- The compressor tries progressive passes using real animated GIF re-encoding:
-  - resize dimensions
-  - palette reduction
-  - frame skipping with preserved combined delays
-  - metadata reduction by rebuilding the animation
-- The worker adapts pass order based on source dimensions, animation length, frame count, and file size.
-- The output is a real downloadable animated `.gif` file.
-- The browser preview uses the generated GIF itself, not a fake canvas export.
-
-## FFmpeg Usage
-
-- The MP4 to GIF converter uses `ffmpeg.wasm` inside a worker.
-- MP4 input is written to the FFmpeg virtual file system.
-- A real GIF palette is generated with `palettegen`.
-- The final GIF is produced with `paletteuse`.
-- Temporary FFmpeg files are deleted after conversion or failure.
+---
 
 ## Memory Cleanup
 
-- Object URLs are revoked when files are reset or replaced.
-- Old output blobs are released when new conversions start.
-- Workers are cancelled and terminated through the tool task flow.
-- FFmpeg temporary files are deleted after MP4 conversion.
-- Previous previews and download links are cleared before new results are rendered.
+The `MemoryManager` class tracks all object URLs created during a session. On reset:
+- All object URLs are revoked via `URL.revokeObjectURL()`
+- Preview elements are cleared
+- Worker state is reset
+- File inputs are cleared
+- Download links are removed
 
-## Browser Compatibility
+---
 
-- Modern Chromium, Firefox, and Safari browsers are supported.
-- If `OffscreenCanvas` is unavailable or limited, the worker falls back to direct pixel resizing.
-- FFmpeg.wasm conversion works best on modern browsers with enough available memory.
-- Corrupted or unsupported GIF files return clearer parse/decode errors instead of failing silently.
-- Mobile browsers may process large GIFs or MP4 files more slowly than desktop devices.
+## Local Setup
 
-## Compression Strategy
+```bash
+# Install dependencies
+npm install
 
-Default target is under `1 MB`.
+# Start development server
+npm run dev
 
-The worker tries lighter to stronger passes and stops early if the file reaches the target. The pass order includes:
+# Build for production
+npm run build
 
-- original width, `256` colors, every frame
-- max width `720`, `256` colors, every frame
-- max width `720`, `128` colors, every frame
-- max width `480`, `128` colors, every frame
-- max width `480`, `64` colors, every 2nd frame
-- max width `360`, `64` colors, every 2nd frame
-- max width `360`, `32` colors, every 2nd frame
-- max width `240`, `32` colors, every 3rd frame
+# Preview production build
+npm run preview
+```
 
-If the target cannot be reached, the app returns the smallest valid animated GIF generated and shows `Best possible compression reached`.
+---
 
 ## Cloudflare Pages Deployment
 
-1. Push the project to GitHub.
-2. Open Cloudflare Dashboard.
-3. Go to `Workers & Pages`.
-4. Create a new Pages project.
-5. Connect the GitHub repository.
-6. Set build configuration:
-   - Build command: `npm run build`
-   - Build output directory: `dist`
-   - Production branch: `main`
-7. Deploy.
+**Framework preset:** Vite  
+**Build command:** `npm run build`  
+**Output directory:** `dist`  
+**Production branch:** `main`  
+**Custom domain:** `https://gif.itisuniqueofficial.com/`
 
-For SPA route support on Cloudflare Pages, this project includes `public/_redirects` so `/mp4-to-gif` resolves correctly.
-
-## Custom Domain Setup
-
-1. In Cloudflare Pages, open the deployed project.
-2. Go to `Custom domains`.
-3. Add `gif.itisuniqueofficial.com`.
-4. Allow Cloudflare to create or suggest the required DNS record.
-5. Confirm the DNS record in the Cloudflare DNS zone.
-6. Wait for SSL issuance and confirm HTTPS is active.
-
-Final production URL:
-
-`https://gif.itisuniqueofficial.com/`
-
-## Privacy
-
-Your GIF is compressed locally in your browser. No file is uploaded to any server. GIF frames are decoded and re-encoded in the browser using a Web Worker so the tool remains client-side only.
-
-Your MP4 is also converted locally in your browser with FFmpeg.wasm in a worker and is never uploaded to any server.
-
-## Known Limitations
-
-- Very large GIFs can use a lot of memory because all frames must be decoded and rebuilt in the browser.
-- Very large MP4 files or long video segments can use significant browser memory during FFmpeg conversion.
-- Aggressive compression may reduce dimensions, palette depth, or animation smoothness.
-- Transparency is preserved as much as practical through RGBA palette quantization, but some edge quality loss is possible with small palettes.
-- Some malformed GIF files may expose only partial metadata before compression, even if decode still succeeds later in the worker.
-
-## Project Structure
-
-```text
-public/
-  favicon.svg
-  robots.txt
-  sitemap.xml
-src/
-  ffmpeg-manager.ts
-  main.ts
-  styles.css
-  types.ts
-  memory-manager.ts
-  layout.ts
-  gif-compressor.ts
-  gif-worker.ts
-  mp4-to-gif.ts
-  mp4-to-gif-worker.ts
-  utils.ts
-index.html
-package.json
-tsconfig.json
-vite.config.ts
-README.md
+The `public/_redirects` file contains the SPA fallback rule:
 ```
+/* /index.html 200
+```
+
+This ensures direct URL access to all routes works correctly on Cloudflare Pages.
+
+---
+
+## Known Browser Limitations
+
+- FFmpeg.wasm requires SharedArrayBuffer support (available in modern browsers with correct COOP/COEP headers)
+- Very large GIFs (>20 MB) may exceed browser memory limits
+- Long MP4 videos (>15 seconds) may cause memory issues on mobile devices
+- Some older browsers may not support OffscreenCanvas used in GIF compression
+- Web Worker support is required for all tools
+
+---
+
+## Large File Limitations
+
+- GIF Compressor: Files over 8 MB show a large file warning
+- MP4 to GIF: Files over 25 MB show a large file warning; duration is limited to 15 seconds
+- GIF Frame Splitter: Large GIFs with many frames may take longer to extract
+- All tools: Browser memory limits apply; closing other tabs helps on low-memory devices
+
+---
+
+## Tech Stack
+
+- **Vite** — Build tool and dev server
+- **TypeScript** — Strict type checking
+- **Custom CSS** — No frameworks, no Tailwind, no Bootstrap
+- **Font Awesome 6** — Icons via CDN
+- **FFmpeg.wasm** — Browser-side video processing
+- **gifenc** — GIF encoding
+- **gifuct-js** — GIF decoding and frame extraction
+- **JSZip** — ZIP archive creation for frame export
+- **Web Workers** — Off-main-thread processing
+- **Cloudflare Pages** — Hosting and CDN
+
+---
 
 ## License
 
-MIT. See `LICENSE`.
+See [LICENSE](LICENSE) for details.
 
-## Final Testing Checklist
+---
 
-- GIF upload works
-- MP4 upload works
-- GIF to MP4 conversion works
-- GIF resizing works
-- GIF cropping works
-- GIF speed changes work
-- GIF frame splitting works
-- GIF maker works
-- Invalid file error works
-- Selected file details show correctly
-- Reset works completely
-- Compression creates a real animated GIF
-- MP4 converts to a real animated GIF
-- Download works
-- Same file can be selected again after reset
-- `/mp4-to-gif` route works
-- `/gif-to-mp4` route works
-- `/gif-resizer` route works
-- `/gif-crop` route works
-- `/gif-speed` route works
-- `/gif-split` route works
-- `/gif-maker` route works
-- `/gif-optimizer` route works
-- UI works on mobile with no horizontal scrolling
-- No console errors during normal use
-- `npm run build` succeeds
-- Cloudflare Pages deployment uses `npm run build` and `dist`
-- Footer credit is visible
-- SEO tags are present in `index.html`
-
-## Deployment Note
-
-Production URLs are already set to `https://gif.itisuniqueofficial.com/` in `index.html`, `public/robots.txt`, and `public/sitemap.xml`.
+Created by [It Is Unique Official](https://www.itisuniqueofficial.com/)

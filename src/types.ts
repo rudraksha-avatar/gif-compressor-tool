@@ -1,5 +1,5 @@
 export type CompressionMode = 'balanced' | 'high' | 'quality';
-export type AppRoute = '/' | '/mp4-to-gif' | '/gif-to-mp4' | '/gif-resizer' | '/gif-speed' | '/gif-optimizer' | '/gif-crop' | '/gif-split' | '/gif-maker';
+export type AppRoute = '/' | '/mp4-to-gif' | '/gif-to-mp4' | '/gif-resizer' | '/gif-speed' | '/gif-optimizer' | '/gif-crop' | '/gif-split' | '/gif-maker' | '/tools' | '/privacy' | '/about' | '/contact' | '/faq' | '/404.html';
 
 export interface GifFileMetadata {
   width: number;
