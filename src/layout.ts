@@ -16,18 +16,19 @@ const NAV_LINKS = [
   { href: '/mp4-to-gif', label: 'MP4 to GIF', icon: 'fa-solid fa-film' },
   { href: '/privacy', label: 'Privacy', icon: 'fa-solid fa-shield-halved' },
   { href: '/faq', label: 'FAQ', icon: 'fa-regular fa-circle-question' },
+  { href: '/contact', label: 'Contact', icon: 'fa-regular fa-envelope' }
 ];
 
 const TOOL_LINKS = [
-  { href: '/', label: 'GIF Compressor', icon: 'fa-regular fa-file-image' },
-  { href: '/mp4-to-gif', label: 'MP4 to GIF', icon: 'fa-solid fa-film' },
-  { href: '/gif-to-mp4', label: 'GIF to MP4', icon: 'fa-solid fa-video' },
-  { href: '/gif-resizer', label: 'GIF Resizer', icon: 'fa-solid fa-up-right-and-down-left-from-center' },
-  { href: '/gif-crop', label: 'GIF Cropper', icon: 'fa-solid fa-crop-simple' },
-  { href: '/gif-speed', label: 'GIF Speed Changer', icon: 'fa-solid fa-gauge-high' },
-  { href: '/gif-split', label: 'GIF Frame Splitter', icon: 'fa-regular fa-images' },
-  { href: '/gif-maker', label: 'GIF Maker', icon: 'fa-solid fa-wand-magic-sparkles' },
-  { href: '/gif-optimizer', label: 'Advanced GIF Optimizer', icon: 'fa-solid fa-sliders' }
+  { href: '/', label: 'GIF Compressor', icon: 'fa-regular fa-file-image', description: 'Compress animated GIFs with real browser-side frame processing.' },
+  { href: '/mp4-to-gif', label: 'MP4 to GIF', icon: 'fa-solid fa-film', description: 'Convert MP4 clips into real animated GIF files.' },
+  { href: '/gif-to-mp4', label: 'GIF to MP4', icon: 'fa-solid fa-video', description: 'Turn animated GIF files into efficient MP4 video output.' },
+  { href: '/gif-resizer', label: 'GIF Resizer', icon: 'fa-solid fa-up-right-and-down-left-from-center', description: 'Resize animated GIFs while keeping valid animated output.' },
+  { href: '/gif-crop', label: 'GIF Cropper', icon: 'fa-solid fa-crop-simple', description: 'Crop GIF frames and export a real cropped animation.' },
+  { href: '/gif-speed', label: 'GIF Speed Changer', icon: 'fa-solid fa-gauge-high', description: 'Speed up or slow down animated GIF timing.' },
+  { href: '/gif-split', label: 'GIF Frame Splitter', icon: 'fa-regular fa-images', description: 'Extract GIF frames as PNG images and ZIP archives.' },
+  { href: '/gif-maker', label: 'GIF Maker', icon: 'fa-solid fa-wand-magic-sparkles', description: 'Create animated GIFs from PNG or JPG image sequences.' },
+  { href: '/gif-optimizer', label: 'Advanced GIF Optimizer', icon: 'fa-solid fa-sliders', description: 'Fine tune GIF size, colors, scale, and frame reduction.' }
 ];
 
 function renderNavLinks(currentRoute: string): string {
@@ -141,8 +142,86 @@ function renderPrivacySection(note: string): string {
   `;
 }
 
+function renderHomeToolCards(): string {
+  return `
+    <section class="page-section page-section-muted" aria-labelledby="home-tools-title">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">All GIF Tools</span>
+          <h2 id="home-tools-title">Browser-based tools for common GIF workflows</h2>
+          <p>Choose a tool, process your file locally, preview the result, and download the finished output without server upload.</p>
+        </div>
+        <div class="tools-grid">
+          ${TOOL_LINKS.map(link => `
+            <article class="tool-card compact-tool-card">
+              <div class="tool-card-icon"><i class="${link.icon}" aria-hidden="true"></i></div>
+              <h3>${link.label}</h3>
+              <p>${link.description}</p>
+              <a class="btn btn-secondary secondary-button" href="${link.href}">
+                <span>Open Tool</span>
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+              </a>
+            </article>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderTrustSection(): string {
+  const items = [
+    { icon: 'fa-solid fa-shield-halved', title: 'Private by design', description: 'Files are processed locally in your browser during normal use.' },
+    { icon: 'fa-solid fa-bolt', title: 'Fast workflows', description: 'Workers keep processing off the main UI thread when possible.' },
+    { icon: 'fa-solid fa-mobile-screen-button', title: 'Responsive layout', description: 'Controls, previews, and cards adapt across phones, tablets, and desktops.' },
+    { icon: 'fa-solid fa-download', title: 'Real outputs', description: 'Tools generate valid GIF, MP4, PNG, or ZIP files instead of fake renamed downloads.' }
+  ];
+
+  return `
+    <section class="page-section" aria-labelledby="trust-title">
+      <div class="container">
+        <div class="section-heading">
+          <span class="eyebrow">Why GIF Tools</span>
+          <h2 id="trust-title">Clean, private, production-ready media utilities</h2>
+          <p>GIF Tools is built for practical browser-based editing with clear status messages and accessible controls.</p>
+        </div>
+        <div class="content-grid feature-grid">
+          ${items.map(item => `
+            <article class="content-card feature-card">
+              <div class="feature-icon"><i class="${item.icon}" aria-hidden="true"></i></div>
+              <h3>${item.title}</h3>
+              <p>${item.description}</p>
+            </article>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderCtaSection(): string {
+  return `
+    <section class="page-section cta-section" aria-labelledby="cta-title">
+      <div class="container">
+        <div class="cta-card">
+          <div>
+            <span class="eyebrow">Start now</span>
+            <h2 id="cta-title">Open a GIF tool and process your file privately</h2>
+            <p>Use the tools directory to choose compression, conversion, resizing, cropping, speed changes, frame extraction, GIF creation, or optimization.</p>
+          </div>
+          <div class="cta-actions">
+            <a class="btn btn-primary primary-button" href="/tools"><i class="fa-solid fa-toolbox" aria-hidden="true"></i><span>View All Tools</span></a>
+            <a class="btn btn-secondary secondary-button" href="/privacy"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Read Privacy</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 export function renderLayout(config: ToolPageConfig): string {
   const isToolPage = config.howItWorks.length > 0;
+  const isHomePage = config.route === '/';
 
   return `
     <div class="site-shell">
@@ -195,6 +274,12 @@ export function renderLayout(config: ToolPageConfig): string {
                     <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
                     <span>Open Tool</span>
                   </a>
+                  ${isHomePage ? `
+                  <a class="btn btn-secondary secondary-button" href="/tools">
+                    <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
+                    <span>Browse Tools</span>
+                  </a>
+                  ` : ''}
                   <a class="btn btn-secondary secondary-button" href="#how-it-works">
                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                     <span>Learn How It Works</span>
@@ -218,6 +303,9 @@ export function renderLayout(config: ToolPageConfig): string {
           </div>
         </section>
 
+        ${isHomePage ? renderHomeToolCards() : ''}
+        ${isHomePage ? renderTrustSection() : ''}
+
         <!-- Tool / Page Content -->
         ${isToolPage ? `
         <section id="tool" class="page-section" aria-label="Tool interface">
@@ -237,6 +325,7 @@ export function renderLayout(config: ToolPageConfig): string {
         ${renderFeatures(config.features)}
         ${isToolPage ? renderPrivacySection(config.privacyNote) : ''}
         ${renderFaq(config.faq)}
+        ${isHomePage ? renderCtaSection() : ''}
 
       </main>
 
@@ -248,7 +337,7 @@ export function renderLayout(config: ToolPageConfig): string {
             <!-- Brand -->
             <div class="footer-col">
               <h3><i class="fa-solid fa-photo-film" aria-hidden="true"></i> GIF Tools</h3>
-              <p>Private browser-based tools for compressing, converting, and optimizing GIF files. No upload required.</p>
+              <p>Private browser-based tools for compressing, converting, editing, and optimizing GIF files. No upload required during normal use.</p>
             </div>
 
             <!-- Tools -->
@@ -264,6 +353,7 @@ export function renderLayout(config: ToolPageConfig): string {
             <div class="footer-col">
               <h3><i class="fa-solid fa-book-open" aria-hidden="true"></i> Resources</h3>
               <nav class="footer-nav" aria-label="Footer resources">
+                <a href="/"><i class="fa-solid fa-house" aria-hidden="true"></i> Home</a>
                 <a href="/about"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> About</a>
                 <a href="/privacy"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Privacy</a>
                 <a href="/faq"><i class="fa-regular fa-circle-question" aria-hidden="true"></i> FAQ</a>
@@ -281,10 +371,9 @@ export function renderLayout(config: ToolPageConfig): string {
 
           <div class="footer-bottom">
             <p class="footer-credit">
-              Made with love by
+              Powered by
               <a href="https://www.itisuniqueofficial.com/" target="_blank" rel="noreferrer">It Is Unique Official</a>
-              &mdash;
-              <a href="https://www.itisuniqueofficial.com/" target="_blank" rel="noreferrer">itisuniqueofficial.com</a>
+              <span>© ${new Date().getFullYear()} GIF Tools</span>
             </p>
           </div>
         </div>

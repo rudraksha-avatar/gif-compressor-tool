@@ -163,6 +163,15 @@ function updateSeo(currentRoute: AppRoute): void {
   const title = config.title;
   const description = config.description;
   const canonical = `https://gif.itisuniqueofficial.com${currentRoute === '/' ? '/' : currentRoute}`;
+  const breadcrumbName = currentRoute === '/' ? 'Home' : config.name;
+  const faqSchemaItems = currentRoute === '/faq'
+    ? [
+        ['Are my files uploaded to a server?', 'No. Files are processed locally in your browser using Web Workers and browser-based media libraries during normal use.'],
+        ['Does GIF Tools create real outputs?', 'Yes. Tools generate real GIF, MP4, PNG, or ZIP outputs instead of renamed fake files.'],
+        ['Does GIF Tools work on mobile devices?', 'Yes. The layout is responsive, though large media files can require more memory and time on mobile devices.'],
+        ['Why can processing fail?', 'Processing can fail when a file is too large for browser memory, malformed, unsupported by the browser, or too complex for available device resources.']
+      ]
+    : [];
 
   document.title = title;
   setMeta('meta[name="description"]', 'content', description);
@@ -175,22 +184,77 @@ function updateSeo(currentRoute: AppRoute): void {
 
   const schema = document.querySelector<HTMLScriptElement>('script[type="application/ld+json"]');
   if (schema) {
-    schema.textContent = JSON.stringify(
+    const graph: Array<Record<string, unknown>> = [
       {
-        '@context': 'https://schema.org',
-        '@type': 'WebApplication',
+        '@type': 'Organization',
+        '@id': 'https://www.itisuniqueofficial.com/#organization',
+        name: 'It Is Unique Official',
+        url: 'https://www.itisuniqueofficial.com/'
+      },
+      {
+        '@type': 'WebSite',
+        '@id': 'https://gif.itisuniqueofficial.com/#website',
+        name: 'GIF Tools',
+        url: 'https://gif.itisuniqueofficial.com/',
+        publisher: { '@id': 'https://www.itisuniqueofficial.com/#organization' },
+        inLanguage: 'en'
+      },
+      {
+        '@type': ['WebApplication', 'SoftwareApplication'],
+        '@id': `${canonical}#app`,
         name: config.name,
         applicationCategory: 'MultimediaApplication',
         operatingSystem: 'Any',
         browserRequirements: 'Requires JavaScript and a modern browser with Web Worker support.',
         description,
         url: canonical,
+        isPartOf: { '@id': 'https://gif.itisuniqueofficial.com/#website' },
         offers: {
           '@type': 'Offer',
           price: '0',
           priceCurrency: 'USD'
         },
         featureList: config.features
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${canonical}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://gif.itisuniqueofficial.com/'
+          },
+          ...(currentRoute === '/' ? [] : [{
+            '@type': 'ListItem',
+            position: 2,
+            name: breadcrumbName,
+            item: canonical
+          }])
+        ]
+      }
+    ];
+
+    if (faqSchemaItems.length > 0) {
+      graph.push({
+        '@type': 'FAQPage',
+        '@id': `${canonical}#faq`,
+        mainEntity: faqSchemaItems.map(([question, answer]) => ({
+          '@type': 'Question',
+          name: question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: answer
+          }
+        }))
+      });
+    }
+
+    schema.textContent = JSON.stringify(
+      {
+        '@context': 'https://schema.org',
+        '@graph': graph
       },
       null,
       2
