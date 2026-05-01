@@ -10,8 +10,8 @@ export const contactPageHtml = `
       <div class="content-card">
         <h3><i class="fa-solid fa-globe" aria-hidden="true"></i> Website</h3>
         <p>
-          <a href="https://www.itisuniqueofficial.com/" target="_blank" rel="noreferrer">
-            https://www.itisuniqueofficial.com/
+          <a href="https://www.xczyron.com/" target="_blank" rel="noreferrer">
+            https://www.xczyron.com/
           </a>
         </p>
       </div>
@@ -19,8 +19,8 @@ export const contactPageHtml = `
       <div class="content-card">
         <h3><i class="fa-regular fa-envelope" aria-hidden="true"></i> Email</h3>
         <p>
-          <a href="mailto:support@itisuniqueofficial.com">
-            support@itisuniqueofficial.com
+          <a href="mailto:support@xczyron.com">
+            support@xczyron.com
           </a>
         </p>
       </div>

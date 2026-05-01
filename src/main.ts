@@ -52,6 +52,29 @@ import {
 } from './utils';
 
 const app = document.querySelector<HTMLDivElement>('#app');
+const SITE_URL = 'https://www.xczyron.com';
+const SITE_TITLE = 'XCZyron - GIF Tools';
+const SITE_DESCRIPTION = 'Free online GIF tools to compress, resize, convert and optimize GIFs quickly with high quality output.';
+const OG_DESCRIPTION = 'Free online GIF tools to compress, resize, and optimize GIFs easily.';
+const TWITTER_DESCRIPTION = 'Fast and free GIF compression and editing tools online.';
+const PREVIEW_IMAGE = `${SITE_URL}/preview.jpg`;
+const PAGE_TITLES: Record<AppRoute, string> = {
+  '/': SITE_TITLE,
+  '/mp4-to-gif': 'MP4 to GIF Converter - XCZyron',
+  '/gif-to-mp4': 'GIF to MP4 Converter - XCZyron',
+  '/gif-resizer': 'GIF Resizer - XCZyron',
+  '/gif-crop': 'GIF Cropper - XCZyron',
+  '/gif-speed': 'GIF Speed Changer - XCZyron',
+  '/gif-split': 'GIF Frame Splitter - XCZyron',
+  '/gif-maker': 'GIF Maker - XCZyron',
+  '/gif-optimizer': 'GIF Optimizer - XCZyron',
+  '/tools': 'Online GIF Tools - XCZyron',
+  '/privacy': 'Privacy Policy - XCZyron',
+  '/about': 'About XCZyron GIF Tools',
+  '/contact': 'Contact XCZyron GIF Tools',
+  '/faq': 'GIF Tools FAQ - XCZyron',
+  '/404.html': 'Page Not Found - XCZyron'
+};
 
 if (!app) {
   throw new Error('App root element not found.');
@@ -67,194 +90,33 @@ function setMeta(selector: string, attribute: 'content' | 'href', value: string)
 }
 
 function updateSeo(currentRoute: AppRoute): void {
-  const seoConfig: Record<AppRoute, { title: string; description: string; name: string; features: string[] }> = {
-    '/': {
-      title: 'GIF Compressor Tool | Fast Browser-Based GIF Compression',
-      description: 'Compress GIF files directly in your browser with a fast, responsive, privacy-friendly tool. Reduce GIF size under 1 MB when possible with no server upload.',
-      name: 'GIF Compressor Tool',
-      features: ['Client-side GIF compression', 'Target size selection', 'Drag and drop upload', 'Responsive design', 'Privacy-friendly processing']
-    },
-    '/mp4-to-gif': {
-      title: 'MP4 to GIF Converter - Convert Video to GIF Online',
-      description: 'Convert MP4 videos to animated GIFs directly in your browser. Fast, private, responsive, and no file upload required.',
-      name: 'MP4 to GIF Converter',
-      features: ['Client-side MP4 to GIF conversion', 'Video trimming', 'GIF size optimization', 'Responsive design', 'Privacy-friendly processing']
-    },
-    '/gif-to-mp4': {
-      title: 'GIF to MP4 Converter - Convert GIF to Video Online',
-      description: 'Convert animated GIF files into MP4 videos directly in your browser. Private, responsive, and no upload required.',
-      name: 'GIF to MP4 Converter',
-      features: ['Client-side GIF to MP4 conversion', 'Animated GIF to video', 'Responsive design', 'Privacy-friendly processing']
-    },
-    '/gif-resizer': {
-      title: 'GIF Resizer - Resize Animated GIF Online',
-      description: 'Resize animated GIF files directly in your browser while keeping real animated output.',
-      name: 'GIF Resizer',
-      features: ['Client-side GIF resizing', 'Responsive design', 'Privacy-friendly processing']
-    },
-    '/gif-speed': {
-      title: 'GIF Speed Changer - Speed Up or Slow Down GIFs',
-      description: 'Change animated GIF speed directly in your browser and download a real updated GIF.',
-      name: 'GIF Speed Changer',
-      features: ['Client-side GIF speed changes', 'Responsive design', 'Privacy-friendly processing']
-    },
-    '/gif-crop': {
-      title: 'GIF Cropper - Crop Animated GIF Online',
-      description: 'Crop animated GIF frames directly in your browser and export a real cropped GIF.',
-      name: 'GIF Cropper',
-      features: ['Client-side GIF cropping', 'Animated GIF output', 'Responsive design', 'Privacy-friendly processing']
-    },
-    '/gif-split': {
-      title: 'GIF Frame Splitter - Extract GIF Frames Online',
-      description: 'Extract GIF frames as PNG images directly in your browser and download them individually or as ZIP.',
-      name: 'GIF Frame Splitter',
-      features: ['Client-side GIF frame extraction', 'PNG frame export', 'ZIP download', 'Responsive design']
-    },
-    '/gif-maker': {
-      title: 'GIF Maker - Create Animated GIF from Images',
-      description: 'Create animated GIFs from PNG and JPG images directly in your browser with no upload required.',
-      name: 'GIF Maker',
-      features: ['Client-side GIF creation', 'Multi-image upload', 'Frame delay control', 'Responsive design']
-    },
-    '/gif-optimizer': {
-      title: 'Advanced GIF Optimizer - Optimize Animated GIFs Online',
-      description: 'Optimize animated GIF files with advanced size, color, scale, and frame controls directly in your browser.',
-      name: 'Advanced GIF Optimizer',
-      features: ['Advanced GIF optimization', 'Manual compression controls', 'Responsive design', 'Privacy-friendly processing']
-    },
-    '/tools': {
-      title: 'GIF Tools - Browser-Based GIF Utilities',
-      description: 'Private browser-based tools for compressing, converting, resizing, cropping, splitting, and creating GIF files.',
-      name: 'GIF Tools',
-      features: ['Tool directory', 'Browser-based media workflows', 'Responsive design']
-    },
-    '/privacy': {
-      title: 'Privacy Policy - GIF Tools',
-      description: 'Read how GIF Tools processes files locally in your browser with no server upload.',
-      name: 'GIF Tools Privacy Policy',
-      features: ['Local processing', 'No upload workflow', 'Browser privacy explanation']
-    },
-    '/about': {
-      title: 'About - GIF Tools',
-      description: 'Learn about GIF Tools and its browser-based GIF utilities.',
-      name: 'About GIF Tools',
-      features: ['About page', 'Browser-based tools', 'It Is Unique Official']
-    },
-    '/contact': {
-      title: 'Contact - GIF Tools',
-      description: 'Contact GIF Tools for support, bug reports, and suggestions.',
-      name: 'Contact GIF Tools',
-      features: ['Contact information', 'Support links', 'Bug report guidance']
-    },
-    '/faq': {
-      title: 'FAQ - GIF Tools',
-      description: 'Read common questions about GIF compression, MP4 conversion, privacy, and browser processing.',
-      name: 'GIF Tools FAQ',
-      features: ['FAQ page', 'Privacy answers', 'Browser processing answers']
-    },
-    '/404.html': {
-      title: 'Page Not Found - GIF Tools',
-      description: 'The page you requested could not be found on GIF Tools.',
-      name: 'GIF Tools 404',
-      features: ['Custom 404 page', 'Navigation back to tools']
-    }
-  };
-  const config = seoConfig[currentRoute];
-  const title = config.title;
-  const description = config.description;
-  const canonical = `https://gif.itisuniqueofficial.com${currentRoute === '/' ? '/' : currentRoute}`;
-  const breadcrumbName = currentRoute === '/' ? 'Home' : config.name;
-  const faqSchemaItems = currentRoute === '/faq'
-    ? [
-        ['Are my files uploaded to a server?', 'No. Files are processed locally in your browser using Web Workers and browser-based media libraries during normal use.'],
-        ['Does GIF Tools create real outputs?', 'Yes. Tools generate real GIF, MP4, PNG, or ZIP outputs instead of renamed fake files.'],
-        ['Does GIF Tools work on mobile devices?', 'Yes. The layout is responsive, though large media files can require more memory and time on mobile devices.'],
-        ['Why can processing fail?', 'Processing can fail when a file is too large for browser memory, malformed, unsupported by the browser, or too complex for available device resources.']
-      ]
-    : [];
+  const title = PAGE_TITLES[currentRoute];
+  const description = SITE_DESCRIPTION;
+  const canonical = `${SITE_URL}${currentRoute === '/' ? '/' : currentRoute}`;
 
   document.title = title;
+  setMeta('meta[name="title"]', 'content', title);
   setMeta('meta[name="description"]', 'content', description);
+  setMeta('meta[name="author"]', 'content', 'XCZyron');
+  setMeta('meta[name="robots"]', 'content', currentRoute === '/404.html' ? 'noindex, follow' : 'index, follow');
   setMeta('link[rel="canonical"]', 'href', canonical);
-  setMeta('meta[property="og:title"]', 'content', title);
-  setMeta('meta[property="og:description"]', 'content', description);
+  setMeta('meta[property="og:title"]', 'content', SITE_TITLE);
+  setMeta('meta[property="og:description"]', 'content', OG_DESCRIPTION);
   setMeta('meta[property="og:url"]', 'content', canonical);
-  setMeta('meta[name="twitter:title"]', 'content', title);
-  setMeta('meta[name="twitter:description"]', 'content', description);
+  setMeta('meta[property="og:image"]', 'content', PREVIEW_IMAGE);
+  setMeta('meta[name="twitter:title"]', 'content', SITE_TITLE);
+  setMeta('meta[name="twitter:description"]', 'content', TWITTER_DESCRIPTION);
+  setMeta('meta[name="twitter:image"]', 'content', PREVIEW_IMAGE);
 
   const schema = document.querySelector<HTMLScriptElement>('script[type="application/ld+json"]');
   if (schema) {
-    const graph: Array<Record<string, unknown>> = [
-      {
-        '@type': 'Organization',
-        '@id': 'https://www.itisuniqueofficial.com/#organization',
-        name: 'It Is Unique Official',
-        url: 'https://www.itisuniqueofficial.com/'
-      },
-      {
-        '@type': 'WebSite',
-        '@id': 'https://gif.itisuniqueofficial.com/#website',
-        name: 'GIF Tools',
-        url: 'https://gif.itisuniqueofficial.com/',
-        publisher: { '@id': 'https://www.itisuniqueofficial.com/#organization' },
-        inLanguage: 'en'
-      },
-      {
-        '@type': ['WebApplication', 'SoftwareApplication'],
-        '@id': `${canonical}#app`,
-        name: config.name,
-        applicationCategory: 'MultimediaApplication',
-        operatingSystem: 'Any',
-        browserRequirements: 'Requires JavaScript and a modern browser with Web Worker support.',
-        description,
-        url: canonical,
-        isPartOf: { '@id': 'https://gif.itisuniqueofficial.com/#website' },
-        offers: {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'USD'
-        },
-        featureList: config.features
-      },
-      {
-        '@type': 'BreadcrumbList',
-        '@id': `${canonical}#breadcrumb`,
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Home',
-            item: 'https://gif.itisuniqueofficial.com/'
-          },
-          ...(currentRoute === '/' ? [] : [{
-            '@type': 'ListItem',
-            position: 2,
-            name: breadcrumbName,
-            item: canonical
-          }])
-        ]
-      }
-    ];
-
-    if (faqSchemaItems.length > 0) {
-      graph.push({
-        '@type': 'FAQPage',
-        '@id': `${canonical}#faq`,
-        mainEntity: faqSchemaItems.map(([question, answer]) => ({
-          '@type': 'Question',
-          name: question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: answer
-          }
-        }))
-      });
-    }
-
     schema.textContent = JSON.stringify(
       {
         '@context': 'https://schema.org',
-        '@graph': graph
+        '@type': 'WebSite',
+        name: 'XCZyron - GIF Tools',
+        url: 'https://www.xczyron.com/',
+        email: 'support@xczyron.com'
       },
       null,
       2

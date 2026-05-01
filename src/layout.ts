@@ -11,6 +11,8 @@ export interface ToolPageConfig {
   faq: Array<{ title: string; description: string }>;
 }
 
+const SITE_URL = 'https://www.xczyron.com';
+
 const NAV_LINKS = [
   { href: '/', label: 'GIF Compressor', icon: 'fa-regular fa-file-image' },
   { href: '/mp4-to-gif', label: 'MP4 to GIF', icon: 'fa-solid fa-film' },
@@ -31,6 +33,10 @@ const TOOL_LINKS = [
   { href: '/gif-optimizer', label: 'Advanced GIF Optimizer', icon: 'fa-solid fa-sliders', description: 'Fine tune GIF size, colors, scale, and frame reduction.' }
 ];
 
+function absoluteUrl(path: string): string {
+  return path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path}`;
+}
+
 function renderNavLinks(currentRoute: string): string {
   const toolsMenu = `
     <div class="nav-tools dropdown" data-dropdown>
@@ -39,9 +45,9 @@ function renderNavLinks(currentRoute: string): string {
         <span>Tools</span>
       </button>
       <div class="nav-tools-menu dropdown-menu" id="tools-menu" role="menu" aria-label="GIF tools" data-dropdown-menu>
-        <a href="/tools" role="menuitem"${currentRoute === '/tools' ? ' aria-current="page"' : ''}><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i><span>All Tools</span></a>
+        <a href="${absoluteUrl('/tools')}" role="menuitem"${currentRoute === '/tools' ? ' aria-current="page"' : ''}><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i><span>All Tools</span></a>
         ${TOOL_LINKS.map(link =>
-          `<a href="${link.href}" role="menuitem"${currentRoute === link.href ? ' aria-current="page"' : ''}>
+          `<a href="${absoluteUrl(link.href)}" role="menuitem"${currentRoute === link.href ? ' aria-current="page"' : ''}>
             <i class="${link.icon}" aria-hidden="true"></i>
             <span>${link.label}</span>
           </a>`
@@ -51,7 +57,7 @@ function renderNavLinks(currentRoute: string): string {
   `;
 
   return `${toolsMenu}${NAV_LINKS.map(link =>
-    `<a href="${link.href}"${currentRoute === link.href ? ' aria-current="page"' : ''}>
+    `<a href="${absoluteUrl(link.href)}"${currentRoute === link.href ? ' aria-current="page"' : ''}>
       <i class="${link.icon}" aria-hidden="true"></i>
       <span>${link.label}</span>
     </a>`
@@ -157,7 +163,7 @@ function renderHomeToolCards(): string {
               <div class="tool-card-icon"><i class="${link.icon}" aria-hidden="true"></i></div>
               <h3>${link.label}</h3>
               <p>${link.description}</p>
-              <a class="btn btn-secondary secondary-button" href="${link.href}">
+              <a class="btn btn-secondary secondary-button" href="${absoluteUrl(link.href)}">
                 <span>Open Tool</span>
                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </a>
@@ -210,8 +216,8 @@ function renderCtaSection(): string {
             <p>Use the tools directory to choose compression, conversion, resizing, cropping, speed changes, frame extraction, GIF creation, or optimization.</p>
           </div>
           <div class="cta-actions">
-            <a class="btn btn-primary primary-button" href="/tools"><i class="fa-solid fa-toolbox" aria-hidden="true"></i><span>View All Tools</span></a>
-            <a class="btn btn-secondary secondary-button" href="/privacy"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Read Privacy</span></a>
+            <a class="btn btn-primary primary-button" href="${absoluteUrl('/tools')}"><i class="fa-solid fa-toolbox" aria-hidden="true"></i><span>View All Tools</span></a>
+            <a class="btn btn-secondary secondary-button" href="${absoluteUrl('/privacy')}"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Read Privacy</span></a>
           </div>
         </div>
       </div>
@@ -228,7 +234,7 @@ export function renderLayout(config: ToolPageConfig): string {
       <!-- ===== HEADER ===== -->
       <header class="site-header" role="banner">
         <div class="container topbar">
-          <a class="brand" href="/" aria-label="GIF Tools home">
+          <a class="brand" href="${absoluteUrl('/')}" aria-label="GIF Tools home">
             <span class="brand-mark" aria-hidden="true">
               <i class="fa-solid fa-photo-film"></i>
             </span>
@@ -275,7 +281,7 @@ export function renderLayout(config: ToolPageConfig): string {
                     <span>Open Tool</span>
                   </a>
                   ${isHomePage ? `
-                  <a class="btn btn-secondary secondary-button" href="/tools">
+                  <a class="btn btn-secondary secondary-button" href="${absoluteUrl('/tools')}">
                     <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
                     <span>Browse Tools</span>
                   </a>
@@ -344,8 +350,8 @@ export function renderLayout(config: ToolPageConfig): string {
             <div class="footer-col">
               <h3><i class="fa-solid fa-toolbox" aria-hidden="true"></i> Tools</h3>
               <nav class="footer-nav" aria-label="Footer tools">
-                <a href="/tools"><i class="fa-solid fa-toolbox" aria-hidden="true"></i> All Tools</a>
-                ${TOOL_LINKS.map(link => `<a href="${link.href}"><i class="${link.icon}" aria-hidden="true"></i> ${link.label}</a>`).join('')}
+                <a href="${absoluteUrl('/tools')}"><i class="fa-solid fa-toolbox" aria-hidden="true"></i> All Tools</a>
+                ${TOOL_LINKS.map(link => `<a href="${absoluteUrl(link.href)}"><i class="${link.icon}" aria-hidden="true"></i> ${link.label}</a>`).join('')}
               </nav>
             </div>
 
@@ -353,11 +359,11 @@ export function renderLayout(config: ToolPageConfig): string {
             <div class="footer-col">
               <h3><i class="fa-solid fa-book-open" aria-hidden="true"></i> Resources</h3>
               <nav class="footer-nav" aria-label="Footer resources">
-                <a href="/"><i class="fa-solid fa-house" aria-hidden="true"></i> Home</a>
-                <a href="/about"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> About</a>
-                <a href="/privacy"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Privacy</a>
-                <a href="/faq"><i class="fa-regular fa-circle-question" aria-hidden="true"></i> FAQ</a>
-                <a href="/contact"><i class="fa-regular fa-envelope" aria-hidden="true"></i> Contact</a>
+                <a href="${absoluteUrl('/')}"><i class="fa-solid fa-house" aria-hidden="true"></i> Home</a>
+                <a href="${absoluteUrl('/about')}"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> About</a>
+                <a href="${absoluteUrl('/privacy')}"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Privacy</a>
+                <a href="${absoluteUrl('/faq')}"><i class="fa-regular fa-circle-question" aria-hidden="true"></i> FAQ</a>
+                <a href="${absoluteUrl('/contact')}"><i class="fa-regular fa-envelope" aria-hidden="true"></i> Contact</a>
               </nav>
             </div>
 
@@ -372,7 +378,7 @@ export function renderLayout(config: ToolPageConfig): string {
           <div class="footer-bottom">
             <p class="footer-credit">
               Powered by
-              <a href="https://www.itisuniqueofficial.com/" target="_blank" rel="noreferrer">It Is Unique Official</a>
+              <a href="https://www.xczyron.com/" target="_blank" rel="noreferrer">XCZyron</a>
               <span>© ${new Date().getFullYear()} GIF Tools</span>
             </p>
           </div>

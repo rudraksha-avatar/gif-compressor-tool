@@ -12,7 +12,7 @@ export const toolsDirectoryHtml = `
         <p>Compress animated GIFs under 1 MB when possible. Real frame processing, real animated output.</p>
         <div class="tool-card-footer">
           <span class="badge badge-available">Available</span>
-          <a class="btn btn-primary primary-button" href="/">Open Tool</a>
+          <a class="btn btn-primary primary-button" href="https://www.xczyron.com/">Open Tool</a>
         </div>
       </div>
 
@@ -22,7 +22,7 @@ export const toolsDirectoryHtml = `
         <p>Convert MP4 video segments into real animated GIF files using FFmpeg.wasm in your browser.</p>
         <div class="tool-card-footer">
           <span class="badge badge-available">Available</span>
-          <a class="btn btn-primary primary-button" href="/mp4-to-gif">Open Tool</a>
+          <a class="btn btn-primary primary-button" href="https://www.xczyron.com/mp4-to-gif">Open Tool</a>
         </div>
       </div>
 
@@ -32,7 +32,7 @@ export const toolsDirectoryHtml = `
         <p>Turn animated GIF files into MP4 video output directly in your browser.</p>
         <div class="tool-card-footer">
           <span class="badge badge-available">Available</span>
-          <a class="btn btn-primary primary-button" href="/gif-to-mp4">Open Tool</a>
+          <a class="btn btn-primary primary-button" href="https://www.xczyron.com/gif-to-mp4">Open Tool</a>
         </div>
       </div>
 
@@ -42,7 +42,7 @@ export const toolsDirectoryHtml = `
         <p>Resize animated GIFs while keeping real animated output. Supports aspect ratio control.</p>
         <div class="tool-card-footer">
           <span class="badge badge-available">Available</span>
-          <a class="btn btn-primary primary-button" href="/gif-resizer">Open Tool</a>
+          <a class="btn btn-primary primary-button" href="https://www.xczyron.com/gif-resizer">Open Tool</a>
         </div>
       </div>
 
@@ -52,7 +52,7 @@ export const toolsDirectoryHtml = `
         <p>Crop GIF frames with numeric crop controls and export a real cropped animated GIF.</p>
         <div class="tool-card-footer">
           <span class="badge badge-available">Available</span>
-          <a class="btn btn-primary primary-button" href="/gif-crop">Open Tool</a>
+          <a class="btn btn-primary primary-button" href="https://www.xczyron.com/gif-crop">Open Tool</a>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ export const toolsDirectoryHtml = `
         <p>Speed up or slow down animated GIF timing and download the updated animation.</p>
         <div class="tool-card-footer">
           <span class="badge badge-available">Available</span>
-          <a class="btn btn-primary primary-button" href="/gif-speed">Open Tool</a>
+          <a class="btn btn-primary primary-button" href="https://www.xczyron.com/gif-speed">Open Tool</a>
         </div>
       </div>
 
@@ -72,7 +72,7 @@ export const toolsDirectoryHtml = `
         <p>Extract GIF frames as real PNG images. Download individually or as a ZIP archive.</p>
         <div class="tool-card-footer">
           <span class="badge badge-available">Available</span>
-          <a class="btn btn-primary primary-button" href="/gif-split">Open Tool</a>
+          <a class="btn btn-primary primary-button" href="https://www.xczyron.com/gif-split">Open Tool</a>
         </div>
       </div>
 
@@ -82,7 +82,7 @@ export const toolsDirectoryHtml = `
         <p>Create animated GIFs from PNG or JPG image sequences with configurable frame delay.</p>
         <div class="tool-card-footer">
           <span class="badge badge-available">Available</span>
-          <a class="btn btn-primary primary-button" href="/gif-maker">Open Tool</a>
+          <a class="btn btn-primary primary-button" href="https://www.xczyron.com/gif-maker">Open Tool</a>
         </div>
       </div>
 
@@ -92,7 +92,7 @@ export const toolsDirectoryHtml = `
         <p>Use advanced manual optimization controls for GIF output size, colors, and frame reduction.</p>
         <div class="tool-card-footer">
           <span class="badge badge-available">Available</span>
-          <a class="btn btn-primary primary-button" href="/gif-optimizer">Open Tool</a>
+          <a class="btn btn-primary primary-button" href="https://www.xczyron.com/gif-optimizer">Open Tool</a>
         </div>
       </div>
 
