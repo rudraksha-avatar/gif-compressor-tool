@@ -2,7 +2,7 @@
 
 A production-ready, fully responsive, browser-based GIF processing platform. All tools run entirely client-side using Web Workers, FFmpeg.wasm, and real GIF processing libraries. No file is uploaded to any server.
 
-**Production URL:** https://www.xczyron.com/
+**Production URL:** https://gif.itisuniqueofficial.com/
 
 ---
 
@@ -145,7 +145,7 @@ npm run preview
 **Build command:** `npm run build`  
 **Output directory:** `dist`  
 **Production branch:** `main`  
-**Custom domain:** `https://www.xczyron.com/`
+**Custom domain:** `https://gif.itisuniqueofficial.com/`
 
 The `public/_redirects` file contains the SPA fallback rule:
 ```
@@ -196,4 +196,4 @@ See [LICENSE](LICENSE) for details.
 
 ---
 
-Created by [XCZyron](https://www.xczyron.com/)
+Created by [It Is Unique Official](https://www.itisuniqueofficial.com/)

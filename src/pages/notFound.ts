@@ -9,20 +9,20 @@ export const notFoundPageHtml = `
       Try the tools directory or open one of the common GIF utilities below.
     </p>
     <div class="not-found-actions">
-      <a class="btn btn-primary primary-button" href="https://www.xczyron.com/">
+      <a class="btn btn-primary primary-button" href="/">
         <i class="fa-solid fa-house" aria-hidden="true"></i>
         <span>Go Home</span>
       </a>
-      <a class="btn btn-secondary secondary-button" href="https://www.xczyron.com/tools">
+      <a class="btn btn-secondary secondary-button" href="/tools">
         <i class="fa-solid fa-toolbox" aria-hidden="true"></i>
         <span>View Tools</span>
       </a>
     </div>
     <div class="not-found-suggestions" aria-label="Suggested tools">
-      <a href="https://www.xczyron.com/">GIF Compressor</a>
-      <a href="https://www.xczyron.com/mp4-to-gif">MP4 to GIF</a>
-      <a href="https://www.xczyron.com/gif-resizer">GIF Resizer</a>
-      <a href="https://www.xczyron.com/gif-optimizer">GIF Optimizer</a>
+      <a href="/">GIF Compressor</a>
+      <a href="/mp4-to-gif">MP4 to GIF</a>
+      <a href="/gif-resizer">GIF Resizer</a>
+      <a href="/gif-optimizer">GIF Optimizer</a>
     </div>
   </div>
 `;

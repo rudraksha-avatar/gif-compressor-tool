@@ -34,7 +34,7 @@ export const aboutPageHtml = `
 
       <div class="content-card">
         <h3><i class="fa-solid fa-user" aria-hidden="true"></i> Created By</h3>
-        <p>GIF Tools is created and maintained by <a href="https://www.xczyron.com/" target="_blank" rel="noreferrer">XCZyron</a>. Visit the website to learn more about other projects.</p>
+        <p>GIF Tools is created and maintained by <a href="https://www.itisuniqueofficial.com/" target="_blank" rel="noreferrer">It Is Unique Official</a>. Visit the website to learn more about other projects.</p>
       </div>
 
     </div>
